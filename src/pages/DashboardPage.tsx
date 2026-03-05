@@ -10,7 +10,10 @@ import {
   Calendar,
   History,
   Loader2,
-  User as UserIcon
+  User as UserIcon,
+  LayoutDashboard,
+  ArrowLeftRight,
+  Users
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
@@ -124,6 +127,17 @@ export function DashboardPage() {
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
+      {/* Mobile Back to Home button */}
+      <div className="flex justify-end mb-4 lg:hidden">
+        <button 
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm active:scale-95 transition-all"
+        >
+          <LayoutDashboard className="w-3 h-3" />
+          Início
+        </button>
+      </div>
+
       {/* Header Banner */}
       <div className="relative bg-[#0F172A] rounded-[32px] md:rounded-[40px] p-6 md:p-12 mb-8 md:mb-10 text-center overflow-hidden shadow-2xl border border-white/5">
         {/* Background Image with Overlay */}
@@ -168,8 +182,39 @@ export function DashboardPage() {
         </div>
       </div>
 
+      {/* Quick Access Grid */}
+      <div className="mb-12">
+        <div className="flex items-center gap-2 mb-6">
+          <LayoutDashboard className="w-5 h-5 text-slate-400" />
+          <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Acesso Rápido</h2>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 gap-3 md:gap-4">
+          {[
+            { label: 'Início', icon: LayoutDashboard, path: '/', color: 'bg-slate-100 text-slate-600' },
+            { label: 'Agendar', icon: PlusCircle, path: '/agendar-jogo', color: 'bg-blue-50 text-blue-600' },
+            { label: 'Jogos', icon: Calendar, path: '/jogos', color: 'bg-indigo-50 text-indigo-600' },
+            { label: 'Placar', icon: CheckCircle2, path: '/registrar-resultado', color: 'bg-emerald-50 text-emerald-600' },
+            { label: 'Ranking', icon: Trophy, path: '/ranking', color: 'bg-red-50 text-red-600' },
+            { label: 'H2H', icon: ArrowLeftRight, path: '/h2h', color: 'bg-orange-50 text-orange-600' },
+            { label: 'Jogadores', icon: Users, path: '/jogadores', color: 'bg-purple-50 text-purple-600' },
+            ...(user?.nivel_acesso === 'admin' ? [{ label: 'Admin', icon: UserIcon, path: '/admin/usuarios', color: 'bg-slate-900 text-white' }] : []),
+          ].map((item) => (
+            <button
+              key={item.label}
+              onClick={() => navigate(item.path)}
+              className="group flex flex-col items-center justify-center p-4 md:p-6 bg-white rounded-[24px] md:rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:scale-[1.05] active:scale-95 transition-all"
+            >
+              <div className={cn("w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center mb-3 transition-transform group-hover:scale-110", item.color)}>
+                <item.icon className="w-5 h-5 md:w-6 md:h-6" />
+              </div>
+              <span className="text-[10px] md:text-xs font-black text-slate-900 uppercase tracking-tight">{item.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
         {stats.map((stat, i) => (
           <motion.div 
             key={stat.label}
@@ -186,42 +231,6 @@ export function DashboardPage() {
             <p className="text-xs text-slate-500">{stat.sub}</p>
           </motion.div>
         ))}
-      </div>
-
-      {/* Action Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <button 
-          onClick={() => navigate('/ranking')}
-          className="group bg-red-600 hover:bg-red-700 p-8 rounded-3xl text-left transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-red-500/20"
-        >
-          <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
-            <Trophy className="text-white w-6 h-6" />
-          </div>
-          <h3 className="text-2xl font-bold text-white mb-2">Ver Ranking</h3>
-          <p className="text-red-100 text-sm">Confira a classificação</p>
-        </button>
-
-        <button 
-          onClick={() => navigate('/jogos')}
-          className="group bg-blue-600 hover:bg-blue-700 p-8 rounded-3xl text-left transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-blue-500/20"
-        >
-          <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
-            <Calendar className="text-white w-6 h-6" />
-          </div>
-          <h3 className="text-2xl font-bold text-white mb-2">Próximos Jogos</h3>
-          <p className="text-blue-100 text-sm">Veja os jogos agendados</p>
-        </button>
-
-        <button 
-          onClick={() => navigate('/registrar-resultado')}
-          className="group bg-[#1E293B] hover:bg-[#0F172A] p-8 rounded-3xl text-left transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-slate-900/20"
-        >
-          <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-6">
-            <PlusCircle className="text-white w-6 h-6" />
-          </div>
-          <h3 className="text-2xl font-bold text-white mb-2">Registrar Placar</h3>
-          <p className="text-slate-300 text-sm">Adicione um resultado</p>
-        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

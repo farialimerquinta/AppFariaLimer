@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Calendar, CheckCircle2, Clock, Filter, Search, Trophy, Timer, MapPin, ExternalLink, Edit2, X, Save, AlertCircle, Loader2, Trash2 } from 'lucide-react';
+import { Calendar, CheckCircle2, Clock, Filter, Search, Trophy, Timer, MapPin, ExternalLink, Edit2, X, Save, AlertCircle, Loader2, Trash2, LayoutDashboard } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { logActivity } from '../services/logService';
 import { recalculateRanking } from '../services/rankingService';
@@ -26,6 +27,7 @@ interface Jogo {
 }
 
 export function JogosPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [jogos, setJogos] = useState<Jogo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -497,6 +499,17 @@ export function JogosPage() {
 
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto">
+      {/* Mobile Back to Home button */}
+      <div className="flex justify-end mb-4 lg:hidden">
+        <button 
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm active:scale-95 transition-all"
+        >
+          <LayoutDashboard className="w-3 h-3" />
+          Início
+        </button>
+      </div>
+
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {gameToDelete && (

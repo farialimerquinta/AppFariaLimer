@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Trophy, Users, Search, ChevronRight, User, ArrowRightLeft, Calendar, MapPin, CheckCircle2, TrendingUp, Medal } from 'lucide-react';
+import { Trophy, Users, Search, ChevronRight, User, ArrowRightLeft, Calendar, MapPin, CheckCircle2, TrendingUp, Medal, LayoutDashboard } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { cn } from '../utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -38,6 +39,7 @@ interface Jogo {
 }
 
 export function H2HPage() {
+  const navigate = useNavigate();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [player1Id, setPlayer1Id] = useState<string>('');
@@ -153,6 +155,17 @@ export function H2HPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Mobile Back to Home button */}
+      <div className="flex justify-end p-4 lg:hidden">
+        <button 
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm active:scale-95 transition-all"
+        >
+          <LayoutDashboard className="w-3 h-3" />
+          Início
+        </button>
+      </div>
+
       {/* ATP Style Hero Section */}
       <div className="relative bg-[#0F172A] rounded-b-[40px] md:rounded-b-[60px] p-6 md:p-12 mb-8 md:mb-10 text-center shadow-2xl border-b border-white/5 z-20">
         <div className="absolute inset-0 z-0 overflow-hidden rounded-b-[40px] md:rounded-b-[60px]">

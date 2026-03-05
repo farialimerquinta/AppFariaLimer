@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Calendar, User, Trophy, X, Save, AlertCircle, CheckCircle2, MessageSquare, Users, Clock, MapPin, ChevronRight, Info } from 'lucide-react';
+import { Calendar, User, Trophy, X, Save, AlertCircle, CheckCircle2, MessageSquare, Users, Clock, MapPin, ChevronRight, Info, LayoutDashboard } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { logActivity } from '../services/logService';
 import { recalculateRanking } from '../services/rankingService';
@@ -28,6 +29,7 @@ interface Jogo {
 }
 
 export function RegistrarResultadoPage() {
+  const navigate = useNavigate();
   const [jogos, setJogos] = useState<Jogo[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedJogo, setSelectedJogo] = useState<Jogo | null>(null);
@@ -209,6 +211,17 @@ export function RegistrarResultadoPage() {
 
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto bg-slate-50 min-h-screen">
+      {/* Mobile Back to Home button */}
+      <div className="flex justify-end mb-4 lg:hidden">
+        <button 
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm active:scale-95 transition-all"
+        >
+          <LayoutDashboard className="w-3 h-3" />
+          Início
+        </button>
+      </div>
+
       {/* Header Banner */}
       <div className="relative bg-[#0F172A] rounded-[32px] md:rounded-[40px] p-6 md:p-8 mb-8 md:mb-10 text-center overflow-hidden shadow-2xl border border-white/5">
         <div className="absolute inset-0 z-0">

@@ -2,6 +2,8 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Sidebar } from './components/Sidebar';
+import { LayoutDashboard } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // Lazy load pages for better performance
 const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
@@ -27,6 +29,7 @@ function LoadingFallback() {
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
   if (loading) return <LoadingFallback />;
 
@@ -35,13 +38,22 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-slate-50">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-slate-50 relative">
       <Sidebar />
       <main className="flex-1 overflow-y-auto w-full">
         <Suspense fallback={<LoadingFallback />}>
           {children}
         </Suspense>
       </main>
+      
+      {/* Floating Home Button for Mobile */}
+      <button
+        onClick={() => navigate('/')}
+        className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-slate-900 text-white rounded-full shadow-2xl flex items-center justify-center z-50 active:scale-90 transition-transform border-4 border-white"
+        aria-label="Voltar ao Início"
+      >
+        <LayoutDashboard className="w-6 h-6" />
+      </button>
     </div>
   );
 }
