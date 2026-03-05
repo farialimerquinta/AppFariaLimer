@@ -40,6 +40,7 @@ interface UserProfile {
   peso?: number;
   forehand?: string;
   backhand?: string;
+  ativo: boolean;
 }
 
 const CATEGORIES = ['Grand Slam', 'ATP 1000', 'ATP 500', 'ATP 250', 'Challenger'];
@@ -85,6 +86,8 @@ export function AdminUsuariosPage() {
                            u.email.toLowerCase().includes(search.toLowerCase()) ||
                            u.titulo_clube.toLowerCase().includes(search.toLowerCase());
       const matchesCategory = categoryFilter === 'TODOS' || u.categoria === categoryFilter;
+      
+      // Handle status filter from the dropdown (if I added one)
       return matchesSearch && matchesCategory;
     });
   }, [users, search, categoryFilter]);
@@ -129,7 +132,8 @@ export function AdminUsuariosPage() {
           backhand: editForm.backhand,
           pontos: editForm.pontos,
           vitorias: editForm.vitorias,
-          derrotas: editForm.derrotas
+          derrotas: editForm.derrotas,
+          ativo: editForm.ativo
         })
         .eq('id', selectedUser.id);
 
@@ -188,6 +192,23 @@ export function AdminUsuariosPage() {
           >
             <option value="TODOS">Todas Categorias</option>
             {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+          </select>
+          <select
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === 'ativos') {
+                setUsers(prev => prev.filter(u => u.ativo));
+              } else if (val === 'inativos') {
+                setUsers(prev => prev.filter(u => !u.ativo));
+              } else {
+                fetchUsers();
+              }
+            }}
+            className="px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer shadow-sm"
+          >
+            <option value="todos">Todos Status</option>
+            <option value="ativos">Apenas Ativos</option>
+            <option value="inativos">Apenas Inativos</option>
           </select>
         </div>
       </div>
@@ -248,6 +269,14 @@ export function AdminUsuariosPage() {
                           <p className="text-xs font-bold text-slate-900">{u.vitorias}/{u.derrotas}</p>
                         </div>
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={cn(
+                        "px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest",
+                        u.ativo ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600"
+                      )}>
+                        {u.ativo ? 'Ativo' : 'Inativo'}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <button 
@@ -401,6 +430,18 @@ export function AdminUsuariosPage() {
                           <option value="">Selecione...</option>
                           <option value="uma mao">Uma mão</option>
                           <option value="duas maos">Duas mãos</option>
+                        </select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-500 uppercase">Status da Conta</label>
+                        <select 
+                          name="ativo" 
+                          value={editForm.ativo ? 'true' : 'false'} 
+                          onChange={(e) => setEditForm(prev => ({ ...prev, ativo: e.target.value === 'true' }))}
+                          className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="true">Ativo</option>
+                          <option value="false">Inativo</option>
                         </select>
                       </div>
                     </div>

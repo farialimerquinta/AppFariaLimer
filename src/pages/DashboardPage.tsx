@@ -24,8 +24,8 @@ interface Jogo {
   data_jogo: string;
   status: string;
   categoria_evento: string;
-  jogador1: { nome: string; avatar_url: string | null };
-  jogador2: { nome: string; avatar_url: string | null };
+  jogador1: { nome: string; avatar_url: string | null; ativo?: boolean };
+  jogador2: { nome: string; avatar_url: string | null; ativo?: boolean };
   resultado?: {
     vencedor_id: string;
     placar_set1: string;
@@ -55,8 +55,8 @@ export function DashboardPage() {
           data_jogo,
           status,
           categoria_evento,
-          jogador1:jogador1_id(id, nome, avatar_url),
-          jogador2:jogador2_id(id, nome, avatar_url)
+          jogador1:jogador1_id(id, nome, avatar_url, ativo),
+          jogador2:jogador2_id(id, nome, avatar_url, ativo)
         `)
         .eq('status', 'agendado')
         .gte('data_jogo', new Date().toISOString())
@@ -71,8 +71,8 @@ export function DashboardPage() {
           data_jogo,
           status,
           categoria_evento,
-          jogador1:jogador1_id(id, nome, avatar_url),
-          jogador2:jogador2_id(id, nome, avatar_url),
+          jogador1:jogador1_id(id, nome, avatar_url, ativo),
+          jogador2:jogador2_id(id, nome, avatar_url, ativo),
           resultado:resultados(vencedor_id, placar_set1, placar_set2, placar_set3, is_wo)
         `)
         .eq('status', 'realizado')
@@ -90,8 +90,18 @@ export function DashboardPage() {
         setJogosFaltam(count || 0);
       }
 
-      if (upcoming) setProximosJogos(upcoming as any);
-      if (recent) setResultadosRecentes(recent as any);
+      if (upcoming) {
+        const filteredUpcoming = (upcoming as any[]).filter(j => 
+          j.jogador1?.ativo !== false && j.jogador2?.ativo !== false
+        );
+        setProximosJogos(filteredUpcoming);
+      }
+      if (recent) {
+        const filteredRecent = (recent as any[]).filter(j => 
+          j.jogador1?.ativo !== false && j.jogador2?.ativo !== false
+        );
+        setResultadosRecentes(filteredRecent);
+      }
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
     } finally {

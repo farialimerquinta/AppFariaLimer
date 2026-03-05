@@ -12,6 +12,7 @@ interface UserProfile {
   derrotas: number;
   avatar_url: string | null;
   nivel_acesso: 'admin' | 'user';
+  ativo: boolean;
 }
 
 interface AuthContextType {
@@ -87,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           derrotas: 2,
           avatar_url: 'https://ui-avatars.com/api/?name=Admin+Demo&background=0D8ABC&color=fff',
           nivel_acesso: 'admin',
+          ativo: true,
         };
         setUser(demoUser);
         localStorage.setItem('faria_limer_demo_user', JSON.stringify(demoUser));
@@ -102,6 +104,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (profileError || !profile) {
         return { error: 'Usuário não encontrado.' };
+      }
+
+      if (profile.ativo === false) {
+        return { error: 'Este usuário está inativo e não pode acessar o sistema.' };
       }
 
       if (profile.senha_cpf !== senhaCpf) {

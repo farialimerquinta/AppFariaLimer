@@ -47,6 +47,7 @@ interface Player {
   peso?: number;
   forehand?: 'destro' | 'canhoto';
   backhand?: 'uma mao' | 'duas maos';
+  ativo: boolean;
 }
 
 const CATEGORIES = ['TODOS', 'Grand Slam', 'ATP 1000', 'ATP 500', 'ATP 250', 'Challenger'];
@@ -111,7 +112,8 @@ export function JogadoresPage() {
                            p.email.toLowerCase().includes(search.toLowerCase()) ||
                            p.titulo_clube.toLowerCase().includes(search.toLowerCase());
       const matchesCategory = categoryFilter === 'TODOS' || p.categoria === categoryFilter;
-      return matchesSearch && matchesCategory;
+      const isAtivo = p.ativo !== false; // Treat undefined or true as active
+      return matchesSearch && matchesCategory && isAtivo;
     });
   }, [players, search, categoryFilter]);
 
@@ -236,24 +238,27 @@ export function JogadoresPage() {
     setMessage(null);
 
     try {
+      const newId = crypto.randomUUID();
       const { error } = await supabase
         .from('perfis')
         .insert([{
+          id: newId,
           nome: newPlayerForm.nome,
           email: newPlayerForm.email,
           titulo_clube: newPlayerForm.titulo_clube,
           senha_cpf: newPlayerForm.senha_cpf,
           categoria: newPlayerForm.categoria,
           nivel_acesso: newPlayerForm.nivel_acesso,
-          pontos: newPlayerForm.pontos || 0,
-          vitorias: newPlayerForm.vitorias || 0,
-          derrotas: newPlayerForm.derrotas || 0,
+          pontos: 0,
+          vitorias: 0,
+          derrotas: 0,
           celular: newPlayerForm.celular,
           idade: newPlayerForm.idade,
           data_nascimento: newPlayerForm.data_nascimento,
           peso: newPlayerForm.peso,
           forehand: newPlayerForm.forehand,
-          backhand: newPlayerForm.backhand
+          backhand: newPlayerForm.backhand,
+          ativo: true
         }]);
 
       if (error) throw error;
@@ -268,6 +273,10 @@ export function JogadoresPage() {
       }
 
       setMessage({ type: 'success', text: 'Jogador criado com sucesso!' });
+      
+      // Use standard alert for confirmation as requested
+      alert('Jogador cadastrado com sucesso!');
+
       setIsAddingPlayer(false);
       setNewPlayerForm({
         categoria: 'Challenger',
@@ -280,6 +289,44 @@ export function JogadoresPage() {
     } catch (err: any) {
       console.error('Error creating player:', err);
       setMessage({ type: 'error', text: 'Erro ao criar jogador.' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleToggleAtivo = async () => {
+    if (!selectedPlayer) return;
+    
+    const confirmMsg = selectedPlayer.ativo 
+      ? `Tem certeza que deseja INATIVAR o jogador ${selectedPlayer.nome}? Ele não aparecerá mais nos rankings e menus.`
+      : `Deseja REATIVAR o jogador ${selectedPlayer.nome}?`;
+
+    if (!window.confirm(confirmMsg)) return;
+
+    setSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('perfis')
+        .update({ ativo: !selectedPlayer.ativo })
+        .eq('id', selectedPlayer.id);
+
+      if (error) throw error;
+
+      if (currentUser) {
+        logActivity(
+          currentUser.id,
+          currentUser.nome,
+          selectedPlayer.ativo ? 'Inativação de Jogador' : 'Reativação de Jogador',
+          `Jogador ${selectedPlayer.nome} ${selectedPlayer.ativo ? 'inativado' : 'reativado'} por ${currentUser.nome}.`
+        );
+      }
+
+      setMessage({ type: 'success', text: `Jogador ${selectedPlayer.ativo ? 'inativado' : 'reativado'} com sucesso!` });
+      fetchPlayers();
+      handleCloseProfile();
+    } catch (err: any) {
+      console.error('Error toggling player status:', err);
+      setMessage({ type: 'error', text: 'Erro ao alterar status do jogador.' });
     } finally {
       setSubmitting(false);
     }
@@ -521,6 +568,20 @@ export function JogadoresPage() {
                 <div className="flex items-center justify-between sm:justify-end gap-2">
                   {(!isEditing && (currentUser?.id === selectedPlayer.id || currentUser?.nivel_acesso === 'admin')) && (
                     <div className="flex items-center gap-2">
+                      {currentUser?.nivel_acesso === 'admin' && currentUser.id !== selectedPlayer.id && (
+                        <button 
+                          onClick={handleToggleAtivo}
+                          className={cn(
+                            "flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] md:text-xs font-black transition-colors",
+                            selectedPlayer.ativo 
+                              ? "bg-red-50 text-red-600 hover:bg-red-100" 
+                              : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                          )}
+                        >
+                          <AlertCircle className="w-3.5 h-3.5" />
+                          {selectedPlayer.ativo ? 'INATIVAR' : 'REATIVAR'}
+                        </button>
+                      )}
                       {currentUser?.id === selectedPlayer.id && (
                         <button 
                           onClick={() => setIsChangingPassword(true)}

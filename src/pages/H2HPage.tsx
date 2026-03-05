@@ -19,6 +19,7 @@ interface Player {
   games_ganhos: number;
   games_perdidos: number;
   saldo_games: number;
+  ativo?: boolean;
 }
 
 interface Jogo {
@@ -54,6 +55,7 @@ export function H2HPage() {
     const searchLower = search1.toLowerCase();
     return players.filter(p => 
       p.id !== player2Id && 
+      p.ativo !== false &&
       (search1 === '' || p.nome.toLowerCase().includes(searchLower))
     ).slice(0, 5);
   }, [players, search1, player2Id]);
@@ -62,6 +64,7 @@ export function H2HPage() {
     const searchLower = search2.toLowerCase();
     return players.filter(p => 
       p.id !== player1Id && 
+      p.ativo !== false &&
       (search2 === '' || p.nome.toLowerCase().includes(searchLower))
     ).slice(0, 5);
   }, [players, search2, player1Id]);

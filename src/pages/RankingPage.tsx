@@ -19,6 +19,7 @@ interface Player {
   saldo_games: number;
   taxa_vitoria: number;
   avatar_url: string | null;
+  ativo?: boolean;
 }
 
 const CATEGORIES = ['TODOS', 'Grand Slam', 'ATP 1000', 'ATP 500', 'ATP 250', 'Challenger'];
@@ -63,7 +64,8 @@ export function RankingPage() {
     return players.filter(p => {
       const matchesSearch = p.nome.toLowerCase().includes(searchLower) || p.email.toLowerCase().includes(searchLower);
       const matchesCategory = category === 'TODOS' || p.categoria === category;
-      return matchesSearch && matchesCategory;
+      const isAtivo = p.ativo !== false; // Treat undefined or true as active
+      return matchesSearch && matchesCategory && isAtivo;
     });
   }, [players, search, category]);
 

@@ -15,6 +15,7 @@ interface Player {
   avatar_url: string | null;
   categoria: string;
   titulo_clube: string;
+  ativo?: boolean;
 }
 
 interface Jogo {
@@ -63,15 +64,18 @@ export function RegistrarResultadoPage() {
           data_jogo,
           status,
           categoria_evento,
-          jogador1:jogador1_id(id, nome, avatar_url, categoria, titulo_clube),
-          jogador2:jogador2_id(id, nome, avatar_url, categoria, titulo_clube)
+          jogador1:jogador1_id(id, nome, avatar_url, categoria, titulo_clube, ativo),
+          jogador2:jogador2_id(id, nome, avatar_url, categoria, titulo_clube, ativo)
         `)
         .eq('status', 'agendado')
         .order('data_jogo', { ascending: true });
 
       if (fetchError) throw fetchError;
       if (data) {
-        setJogos(data as any);
+        const filteredJogos = (data as any[]).filter(j => 
+          j.jogador1?.ativo !== false && j.jogador2?.ativo !== false
+        );
+        setJogos(filteredJogos);
       }
     } catch (err: any) {
       console.error('Error fetching jogos:', err);

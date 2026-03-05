@@ -14,8 +14,8 @@ interface Jogo {
   data_jogo: string;
   status: string;
   categoria_evento: string;
-  jogador1: { nome: string; avatar_url: string | null };
-  jogador2: { nome: string; avatar_url: string | null };
+  jogador1: { id: string; nome: string; avatar_url: string | null; ativo?: boolean };
+  jogador2: { id: string; nome: string; avatar_url: string | null; ativo?: boolean };
   resultado?: {
     vencedor_id: string;
     placar_set1: string;
@@ -67,8 +67,8 @@ export function JogosPage() {
           data_jogo,
           status,
           categoria_evento,
-          jogador1:jogador1_id(id, nome, avatar_url),
-          jogador2:jogador2_id(id, nome, avatar_url),
+          jogador1:jogador1_id(id, nome, avatar_url, ativo),
+          jogador2:jogador2_id(id, nome, avatar_url, ativo),
           resultado:resultados(vencedor_id, placar_set1, placar_set2, placar_set3, is_wo)
         `)
         .order('data_jogo', { ascending: false });
@@ -78,7 +78,12 @@ export function JogosPage() {
       }
 
       const { data } = await query;
-      if (data) setJogos(data as any);
+      if (data) {
+        const filteredJogos = (data as any[]).filter(j => 
+          j.jogador1?.ativo !== false && j.jogador2?.ativo !== false
+        );
+        setJogos(filteredJogos);
+      }
     } catch (err) {
       console.error('Error fetching jogos:', err);
     } finally {

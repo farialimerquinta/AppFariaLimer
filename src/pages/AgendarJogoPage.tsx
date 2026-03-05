@@ -10,6 +10,8 @@ interface Player {
   id: string;
   nome: string;
   titulo_clube?: string;
+  categoria?: string;
+  ativo?: boolean;
 }
 
 export function AgendarJogoPage() {
@@ -34,7 +36,10 @@ export function AgendarJogoPage() {
 
   useEffect(() => {
     if (formData.categoria_evento) {
-      const filtered = jogadores.filter(j => (j as any).categoria === formData.categoria_evento);
+      const filtered = jogadores.filter(j => 
+        j.categoria === formData.categoria_evento && 
+        j.ativo !== false
+      );
       setFilteredJogadores(filtered);
       // Reset players if they don't belong to the new category
       setFormData(prev => ({
