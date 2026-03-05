@@ -150,22 +150,41 @@ export function H2HPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* WTA Style Hero Section - Reduced height */}
-      <div className="relative bg-[#00FF87] py-8 md:py-12 z-20">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/20 to-transparent pointer-events-none"></div>
-        <div className="relative z-10 max-w-7xl mx-auto px-4 text-center">
-          <motion.h1 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-7xl font-black text-[#2D004F] uppercase italic tracking-tighter mb-8"
-          >
-            Head to Head
-          </motion.h1>
+      {/* ATP Style Hero Section */}
+      <div className="relative bg-[#0F172A] rounded-b-[40px] md:rounded-b-[60px] p-6 md:p-12 mb-8 md:mb-10 text-center shadow-2xl border-b border-white/5 z-20">
+        <div className="absolute inset-0 z-0 overflow-hidden rounded-b-[40px] md:rounded-b-[60px]">
+          <img 
+            src="https://images.unsplash.com/photo-1595435066359-62f32ff9d51d?q=80&w=1920&auto=format&fit=crop" 
+            alt="Tennis Court" 
+            className="w-full h-full object-cover opacity-10"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A]/80 via-[#0F172A]/60 to-[#0F172A]"></div>
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto">
+          <div className="flex flex-col items-center group cursor-pointer mb-6">
+            <div className="relative pr-4">
+              <span className="text-4xl md:text-5xl font-black italic tracking-tighter leading-none bg-gradient-to-b from-yellow-200 via-yellow-500 to-yellow-700 bg-clip-text text-transparent drop-shadow-2xl">
+                ATP
+              </span>
+              <div className="absolute top-1/2 left-0 w-[calc(100%-1rem)] h-[2px] bg-white -rotate-12 transform -translate-y-1/2 opacity-40"></div>
+            </div>
+            <div className="mt-1 flex flex-col items-center">
+              <span className="text-sm md:text-lg font-black tracking-[0.4em] bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent uppercase leading-none">
+                FARIA LIMER
+              </span>
+            </div>
+          </div>
+          
+          <h1 className="text-3xl md:text-6xl font-black text-white mb-8 italic tracking-tighter uppercase">
+            HEAD TO <span className="text-yellow-500">HEAD</span>
+          </h1>
 
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
             {/* Player 1 Searchable Input */}
             <div className="w-full max-w-sm relative">
-              <div className="bg-white rounded-[24px] md:rounded-[32px] p-4 md:p-6 shadow-2xl border-b-4 md:border-b-8 border-[#2D004F]">
+              <div className="bg-white rounded-[24px] md:rounded-[32px] p-4 md:p-6 shadow-2xl border-b-4 md:border-b-8 border-yellow-500">
                 <input 
                   type="text"
                   placeholder="Digite o nome do tenista 1"
@@ -175,11 +194,11 @@ export function H2HPage() {
                     setShowResults1(true);
                   }}
                   onFocus={() => {
-                    setSearch1(''); // Clear on focus to show all options
+                    setSearch1('');
                     setShowResults1(true);
                   }}
                   onBlur={() => setTimeout(() => setShowResults1(false), 200)}
-                  className="w-full bg-transparent text-lg md:text-2xl font-black text-[#2D004F] uppercase text-center outline-none placeholder:text-slate-200"
+                  className="w-full bg-transparent text-lg md:text-2xl font-black text-[#0F172A] uppercase text-center outline-none placeholder:text-slate-200"
                 />
                 <AnimatePresence>
                   {showResults1 && filteredPlayers1.length > 0 && (
@@ -193,7 +212,7 @@ export function H2HPage() {
                         <button
                           key={p.id}
                           onMouseDown={(e) => {
-                            e.preventDefault(); // Prevent blur before click
+                            e.preventDefault();
                             setPlayer1Id(p.id);
                             setSearch1(p.nome);
                             setShowResults1(false);
@@ -203,7 +222,7 @@ export function H2HPage() {
                           <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-100">
                             <img src={p.avatar_url || `https://ui-avatars.com/api/?name=${p.nome}`} alt="" className="w-full h-full object-cover" />
                           </div>
-                          <span className="text-sm font-black text-[#2D004F] uppercase">{p.nome}</span>
+                          <span className="text-sm font-black text-[#0F172A] uppercase">{p.nome}</span>
                         </button>
                       ))}
                     </motion.div>
@@ -218,14 +237,14 @@ export function H2HPage() {
 
             <button 
               onClick={swapPlayers}
-              className="w-10 h-10 md:w-14 md:h-14 bg-[#2D004F] text-white rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-all active:scale-95 z-10"
+              className="w-10 h-10 md:w-14 md:h-14 bg-yellow-500 text-[#0F172A] rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-all active:scale-95 z-10"
             >
               <ArrowRightLeft className="w-5 h-5 md:w-7 md:h-7" />
             </button>
 
             {/* Player 2 Searchable Input */}
             <div className="w-full max-w-sm relative">
-              <div className="bg-white rounded-[24px] md:rounded-[32px] p-4 md:p-6 shadow-2xl border-b-4 md:border-b-8 border-[#2D004F]">
+              <div className="bg-white rounded-[24px] md:rounded-[32px] p-4 md:p-6 shadow-2xl border-b-4 md:border-b-8 border-yellow-500">
                 <input 
                   type="text"
                   placeholder="Digite o nome do tenista 2"
@@ -235,11 +254,11 @@ export function H2HPage() {
                     setShowResults2(true);
                   }}
                   onFocus={() => {
-                    setSearch2(''); // Clear on focus to show all options
+                    setSearch2('');
                     setShowResults2(true);
                   }}
                   onBlur={() => setTimeout(() => setShowResults2(false), 200)}
-                  className="w-full bg-transparent text-lg md:text-2xl font-black text-[#2D004F] uppercase text-center outline-none placeholder:text-slate-200"
+                  className="w-full bg-transparent text-lg md:text-2xl font-black text-[#0F172A] uppercase text-center outline-none placeholder:text-slate-200"
                 />
                 <AnimatePresence>
                   {showResults2 && filteredPlayers2.length > 0 && (
@@ -253,7 +272,7 @@ export function H2HPage() {
                         <button
                           key={p.id}
                           onMouseDown={(e) => {
-                            e.preventDefault(); // Prevent blur before click
+                            e.preventDefault();
                             setPlayer2Id(p.id);
                             setSearch2(p.nome);
                             setShowResults2(false);
@@ -263,7 +282,7 @@ export function H2HPage() {
                           <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-100">
                             <img src={p.avatar_url || `https://ui-avatars.com/api/?name=${p.nome}`} alt="" className="w-full h-full object-cover" />
                           </div>
-                          <span className="text-sm font-black text-[#2D004F] uppercase">{p.nome}</span>
+                          <span className="text-sm font-black text-[#0F172A] uppercase">{p.nome}</span>
                         </button>
                       ))}
                     </motion.div>
@@ -286,24 +305,24 @@ export function H2HPage() {
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-[#2D004F] rounded-[40px] p-8 md:p-12 shadow-2xl text-white overflow-hidden relative"
+              className="bg-[#0F172A] rounded-[40px] p-8 md:p-12 shadow-2xl text-white overflow-hidden relative"
             >
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-full bg-white/10 hidden md:block"></div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-8 relative z-10">
                 <div className="text-center md:text-right">
-                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-[#00FF87] overflow-hidden mx-auto md:ml-auto md:mr-0 mb-4 shadow-2xl">
+                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-yellow-500 overflow-hidden mx-auto md:ml-auto md:mr-0 mb-4 shadow-2xl">
                     <img src={p1.avatar_url || `https://ui-avatars.com/api/?name=${p1.nome}`} alt="" className="w-full h-full object-cover" />
                   </div>
                   <h2 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter">{p1.nome}</h2>
-                  <p className="text-[#00FF87] font-black text-sm uppercase tracking-widest mt-2">{p1.categoria}</p>
+                  <p className="text-yellow-500 font-black text-sm uppercase tracking-widest mt-2">{p1.categoria}</p>
                 </div>
 
                 <div className="text-center">
                   <div className="inline-flex items-center justify-center gap-4 mb-4">
-                    <span className="text-6xl md:text-8xl font-black italic tracking-tighter text-[#00FF87]">{h2hStats?.p1Wins}</span>
+                    <span className="text-6xl md:text-8xl font-black italic tracking-tighter text-yellow-500">{h2hStats?.p1Wins}</span>
                     <span className="text-2xl md:text-4xl font-black text-white/20 italic">VS</span>
-                    <span className="text-6xl md:text-8xl font-black italic tracking-tighter text-[#00FF87]">{h2hStats?.p2Wins}</span>
+                    <span className="text-6xl md:text-8xl font-black italic tracking-tighter text-yellow-500">{h2hStats?.p2Wins}</span>
                   </div>
                   <div className="bg-white/10 rounded-full px-6 py-2 inline-block">
                     <span className="text-xs font-black uppercase tracking-[0.3em]">{h2hStats?.total} MATCHES PLAYED</span>
@@ -311,11 +330,11 @@ export function H2HPage() {
                 </div>
 
                 <div className="text-center md:text-left">
-                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-[#00FF87] overflow-hidden mx-auto md:mr-auto md:ml-0 mb-4 shadow-2xl">
+                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-yellow-500 overflow-hidden mx-auto md:mr-auto md:ml-0 mb-4 shadow-2xl">
                     <img src={p2.avatar_url || `https://ui-avatars.com/api/?name=${p2.nome}`} alt="" className="w-full h-full object-cover" />
                   </div>
                   <h2 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter">{p2.nome}</h2>
-                  <p className="text-[#00FF87] font-black text-sm uppercase tracking-widest mt-2">{p2.categoria}</p>
+                  <p className="text-yellow-500 font-black text-sm uppercase tracking-widest mt-2">{p2.categoria}</p>
                 </div>
               </div>
             </motion.div>
@@ -323,7 +342,7 @@ export function H2HPage() {
             {/* Career Stats Comparison */}
             <div className="bg-white rounded-[40px] shadow-xl border border-slate-100 overflow-hidden">
               <div className="p-8 md:p-12 border-b border-slate-50 bg-slate-50/50">
-                <h3 className="text-3xl md:text-5xl font-black text-[#2D004F] uppercase italic tracking-tighter text-center">Career Stats</h3>
+                <h3 className="text-3xl md:text-5xl font-black text-[#0F172A] uppercase italic tracking-tighter text-center">Career Stats</h3>
               </div>
               <div className="p-4 md:p-12">
                 <div className="space-y-8">
@@ -340,7 +359,7 @@ export function H2HPage() {
             {/* Player Profiles */}
             <div className="bg-white rounded-[40px] shadow-xl border border-slate-100 overflow-hidden">
               <div className="p-8 md:p-12 border-b border-slate-50 bg-slate-50/50">
-                <h3 className="text-3xl md:text-5xl font-black text-[#2D004F] uppercase italic tracking-tighter text-center">Player Profiles</h3>
+                <h3 className="text-3xl md:text-5xl font-black text-[#0F172A] uppercase italic tracking-tighter text-center">Player Profiles</h3>
               </div>
               <div className="p-4 md:p-12">
                 <div className="space-y-8">
@@ -354,10 +373,10 @@ export function H2HPage() {
 
             {/* Past Meets */}
             <div className="space-y-8">
-              <h3 className="text-3xl md:text-5xl font-black text-[#2D004F] uppercase italic tracking-tighter text-center">Past Meets</h3>
+              <h3 className="text-3xl md:text-5xl font-black text-[#0F172A] uppercase italic tracking-tighter text-center">Past Meets</h3>
               {fetchingMatches ? (
                 <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2D004F]"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0F172A]"></div>
                 </div>
               ) : pastMatches.length === 0 ? (
                 <div className="bg-white rounded-[32px] p-12 text-center border border-slate-100 shadow-sm">
@@ -374,11 +393,11 @@ export function H2HPage() {
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 bg-[#2D004F] rounded-xl flex items-center justify-center text-[#00FF87]">
+                          <div className="w-10 h-10 bg-[#0F172A] rounded-xl flex items-center justify-center text-yellow-500">
                             <Trophy className="w-5 h-5" />
                           </div>
                           <div>
-                            <p className="text-sm font-black text-[#2D004F] uppercase tracking-tighter">{match.categoria_evento}</p>
+                            <p className="text-sm font-black text-[#0F172A] uppercase tracking-tighter">{match.categoria_evento}</p>
                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{format(new Date(match.data_jogo), "MMMM yyyy", { locale: ptBR })}</p>
                           </div>
                         </div>
@@ -388,7 +407,7 @@ export function H2HPage() {
                         </div>
                       </div>
 
-                      <div className="flex-[2] bg-[#2D004F] rounded-[24px] p-6 md:p-8 text-white w-full">
+                      <div className="flex-[2] bg-[#0F172A] rounded-[24px] p-6 md:p-8 text-white w-full">
                         <div className="space-y-4">
                           <MatchPlayerRow 
                             name={p1.nome} 
@@ -424,7 +443,7 @@ export function H2HPage() {
             <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-8">
               <Users className="w-12 h-12 text-slate-200" />
             </div>
-            <h2 className="text-3xl md:text-5xl font-black text-[#2D004F] uppercase italic tracking-tighter mb-4">Select Players</h2>
+            <h2 className="text-3xl md:text-5xl font-black text-[#0F172A] uppercase italic tracking-tighter mb-4">Select Players</h2>
             <p className="text-slate-400 text-lg max-w-md mx-auto">Choose two players from the menu above to compare their career statistics and direct match history.</p>
           </div>
         )}
@@ -437,9 +456,9 @@ function StatRow({ label, v1, v2 }: { label: string, v1: any, v2: any }) {
   return (
     <div className="relative">
       <div className="flex items-center justify-between py-2 relative z-10">
-        <div className="w-1/3 text-2xl md:text-4xl font-black text-[#2D004F] italic tracking-tighter">{v1}</div>
+        <div className="w-1/3 text-2xl md:text-4xl font-black text-[#0F172A] italic tracking-tighter">{v1}</div>
         <div className="w-1/3 text-center text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-[0.3em]">{label}</div>
-        <div className="w-1/3 text-right text-2xl md:text-4xl font-black text-[#2D004F] italic tracking-tighter">{v2}</div>
+        <div className="w-1/3 text-right text-2xl md:text-4xl font-black text-[#0F172A] italic tracking-tighter">{v2}</div>
       </div>
       <div className="absolute bottom-0 left-0 w-full h-px bg-slate-100"></div>
     </div>
@@ -452,11 +471,11 @@ function MatchPlayerRow({ name, isWinner, scores, isP1 }: { name: string, isWinn
       <div className="flex items-center gap-3">
         <div className={cn(
           "w-2 h-2 rounded-full",
-          isWinner ? "bg-[#00FF87] shadow-[0_0_10px_#00FF87]" : "bg-transparent"
+          isWinner ? "bg-yellow-500 shadow-[0_0_10px_#EAB308]" : "bg-transparent"
         )}></div>
         <span className={cn(
           "text-sm md:text-xl font-black uppercase italic tracking-tighter",
-          isWinner ? "text-[#00FF87]" : "text-white/60"
+          isWinner ? "text-yellow-500" : "text-white/60"
         )}>{name}</span>
       </div>
       <div className="flex gap-4 md:gap-8">
