@@ -44,11 +44,11 @@ export function LoginPage() {
       >
         <div className="text-center mb-10">
           <div className="inline-flex flex-col items-center group cursor-pointer">
-            <div className="relative">
+            <div className="relative pr-6">
               <span className="text-6xl md:text-8xl font-black italic tracking-tighter leading-none bg-gradient-to-b from-yellow-200 via-yellow-500 to-yellow-700 bg-clip-text text-transparent drop-shadow-2xl">
                 ATP
               </span>
-              <div className="absolute top-1/2 left-0 w-full h-[2px] md:h-[4px] bg-[#0F172A] -rotate-12 transform -translate-y-1/2 opacity-60"></div>
+              <div className="absolute top-1/2 left-0 w-[calc(100%-1.5rem)] h-[2px] md:h-[4px] bg-[#0F172A] -rotate-12 transform -translate-y-1/2 opacity-60"></div>
             </div>
             <div className="mt-2 flex flex-col items-center">
               <span className="text-xl md:text-2xl font-black tracking-[0.4em] bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent uppercase leading-none">
@@ -60,7 +60,8 @@ export function LoginPage() {
               </div>
             </div>
           </div>
-          <p className="text-slate-500 text-[8px] md:text-[10px] uppercase font-bold tracking-[0.3em] mt-8">Ranking de Tênis 2026</p>
+          <p className="text-slate-500 text-[8px] md:text-[10px] uppercase font-bold tracking-[0.3em] mt-8">Ranking Faria Limer | Quinta</p>
+          <p className="text-yellow-500/60 text-[8px] md:text-[10px] uppercase font-bold tracking-[0.1em] mt-2 italic">Onde os campeões se encontram toda quinta-feira!</p>
         </div>
 
         <div className="bg-white rounded-[32px] p-6 md:p-8 shadow-2xl">

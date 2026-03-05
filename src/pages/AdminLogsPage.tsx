@@ -114,11 +114,11 @@ export function AdminLogsPage() {
 
         <div className="relative z-10">
           <div className="flex flex-col items-center group cursor-pointer mb-4">
-            <div className="relative">
+            <div className="relative pr-4">
               <span className="text-4xl md:text-5xl font-black italic tracking-tighter leading-none bg-gradient-to-b from-yellow-200 via-yellow-500 to-yellow-700 bg-clip-text text-transparent drop-shadow-2xl">
                 ATP
               </span>
-              <div className="absolute top-1/2 left-0 w-full h-[2px] bg-white -rotate-12 transform -translate-y-1/2 opacity-40"></div>
+              <div className="absolute top-1/2 left-0 w-[calc(100%-1rem)] h-[2px] bg-white -rotate-12 transform -translate-y-1/2 opacity-40"></div>
             </div>
             <div className="mt-1 flex flex-col items-center">
               <span className="text-sm md:text-lg font-black tracking-[0.4em] bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent uppercase leading-none">
@@ -127,8 +127,11 @@ export function AdminLogsPage() {
             </div>
           </div>
           <h1 className="text-2xl md:text-4xl font-black text-white mb-2 italic tracking-tight uppercase">
-            Logs de <span className="text-yellow-500">Sistema</span>
+            RANKING FARIA LIMER <span className="text-yellow-500">|</span> QUINTA
           </h1>
+          <p className="text-slate-300 text-sm md:text-base font-medium">
+            Onde os campeões se encontram toda quinta-feira!
+          </p>
         </div>
       </div>
 

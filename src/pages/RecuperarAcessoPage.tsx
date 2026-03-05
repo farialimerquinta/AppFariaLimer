@@ -100,11 +100,11 @@ export function RecuperarAcessoPage() {
       >
         <div className="text-center mb-12">
           <div className="inline-flex flex-col items-center group cursor-pointer">
-            <div className="relative">
+            <div className="relative pr-6">
               <span className="text-6xl md:text-7xl font-black italic tracking-tighter leading-none bg-gradient-to-b from-yellow-200 via-yellow-500 to-yellow-700 bg-clip-text text-transparent drop-shadow-2xl transition-transform group-hover:scale-105">
                 ATP
               </span>
-              <div className="absolute top-1/2 left-0 w-full h-[2px] md:h-[3px] bg-[#0F172A] -rotate-12 transform -translate-y-1/2 opacity-60"></div>
+              <div className="absolute top-1/2 left-0 w-[calc(100%-1.5rem)] h-[2px] md:h-[3px] bg-[#0F172A] -rotate-12 transform -translate-y-1/2 opacity-60"></div>
             </div>
             <div className="mt-2 flex flex-col items-center">
               <span className="text-lg md:text-xl font-black tracking-[0.4em] bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent uppercase leading-none">
@@ -116,8 +116,8 @@ export function RecuperarAcessoPage() {
               </div>
             </div>
           </div>
-          <h1 className="text-xl md:text-2xl font-black text-white mt-10 mb-2 uppercase tracking-tight italic">RECUPERAR ACESSO</h1>
-          <p className="text-slate-400 text-[8px] md:text-[10px] uppercase tracking-widest font-bold">Siga os passos para resetar sua senha</p>
+          <h1 className="text-xl md:text-2xl font-black text-white mt-10 mb-2 uppercase tracking-tight italic">RANKING FARIA LIMER | QUINTA</h1>
+          <p className="text-slate-400 text-[8px] md:text-[10px] uppercase tracking-widest font-bold">Onde os campeões se encontram toda quinta-feira!</p>
         </div>
 
         <div className="bg-white rounded-[32px] p-6 md:p-8 shadow-2xl overflow-hidden relative">

@@ -129,11 +129,11 @@ export function DashboardPage() {
 
         <div className="relative z-10">
           <div className="flex flex-col items-center group cursor-pointer mb-6 md:mb-8">
-            <div className="relative">
+            <div className="relative pr-4">
               <span className="text-5xl md:text-7xl font-black italic tracking-tighter leading-none bg-gradient-to-b from-yellow-200 via-yellow-500 to-yellow-700 bg-clip-text text-transparent drop-shadow-2xl">
                 ATP
               </span>
-              <div className="absolute top-1/2 left-0 w-full h-[2px] md:h-[3px] bg-white -rotate-12 transform -translate-y-1/2 opacity-40"></div>
+              <div className="absolute top-1/2 left-0 w-[calc(100%-1rem)] h-[2px] md:h-[3px] bg-white -rotate-12 transform -translate-y-1/2 opacity-40"></div>
             </div>
             <div className="mt-1 flex flex-col items-center">
               <span className="text-sm md:text-xl font-black tracking-[0.4em] bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent uppercase leading-none">
@@ -150,7 +150,7 @@ export function DashboardPage() {
             <span className="text-[8px] md:text-[10px] font-black text-yellow-500 uppercase tracking-[0.2em]">Temporada 2026</span>
           </motion.div>
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-4 tracking-tighter uppercase italic leading-tight">
-            RANKING FARIA LAIMER <span className="hidden sm:inline text-yellow-500">|</span> <span className="sm:hidden block text-yellow-500">QUINTA</span> <span className="hidden sm:inline">QUINTA</span>
+            RANKING FARIA LIMER <span className="text-yellow-500">|</span> QUINTA
           </h1>
           <p className="text-slate-300 text-base md:text-xl font-medium tracking-wide">
             Onde os campeões se encontram toda quinta-feira!

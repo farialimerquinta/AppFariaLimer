@@ -84,11 +84,11 @@ export function Sidebar() {
           <div className="flex flex-col items-center gap-4">
             <div className="relative group cursor-pointer">
               <div className="flex flex-col items-center">
-                <div className="relative">
+                <div className="relative pr-2">
                   <span className="text-5xl font-black italic tracking-tighter leading-none bg-gradient-to-b from-yellow-200 via-yellow-500 to-yellow-700 bg-clip-text text-transparent drop-shadow-md">
                     ATP
                   </span>
-                  <div className="absolute top-1/2 left-0 w-full h-[2px] bg-[#0F172A] -rotate-12 transform -translate-y-1/2 opacity-50"></div>
+                  <div className="absolute top-1/2 left-0 w-[calc(100%-0.5rem)] h-[2px] bg-[#0F172A] -rotate-12 transform -translate-y-1/2 opacity-50"></div>
                 </div>
                 <div className="mt-1 flex flex-col items-center">
                   <span className="text-[12px] font-black tracking-[0.3em] bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent uppercase leading-none">
