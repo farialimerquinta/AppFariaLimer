@@ -191,7 +191,7 @@ export function DashboardPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 gap-3 md:gap-4">
           {[
             { label: 'Início', icon: LayoutDashboard, path: '/', color: 'bg-slate-100 text-slate-600' },
-            { label: 'Agendar', icon: PlusCircle, path: '/agendar-jogo', color: 'bg-blue-50 text-blue-600' },
+            { label: 'Agendar', icon: PlusCircle, path: '/agendar-jogos', color: 'bg-blue-50 text-blue-600' },
             { label: 'Jogos', icon: Calendar, path: '/jogos', color: 'bg-indigo-50 text-indigo-600' },
             { label: 'Placar', icon: CheckCircle2, path: '/registrar-resultado', color: 'bg-emerald-50 text-emerald-600' },
             { label: 'Ranking', icon: Trophy, path: '/ranking', color: 'bg-red-50 text-red-600' },
