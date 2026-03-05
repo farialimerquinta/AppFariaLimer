@@ -19,7 +19,10 @@ import {
   Camera,
   Loader2,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  UserPlus,
+  Lock,
+  Key
 } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { logActivity } from '../services/logService';
@@ -62,6 +65,22 @@ export function JogadoresPage() {
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  
+  // New Player Modal State
+  const [isAddingPlayer, setIsAddingPlayer] = useState(false);
+  const [newPlayerForm, setNewPlayerForm] = useState<Partial<Player & { senha_cpf: string }>>({
+    categoria: 'Challenger',
+    nivel_acesso: 'user',
+    pontos: 0,
+    vitorias: 0,
+    derrotas: 0
+  });
+
+  // Change Password Modal State
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordSubmitting, setPasswordSubmitting] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -184,14 +203,12 @@ export function JogadoresPage() {
       if (error) throw error;
 
       // Log activity
-      const user = (await supabase.auth.getUser()).data.user;
-      const { data: profile } = await supabase.from('perfis').select('nome').eq('id', user?.id).single();
-      if (user && profile) {
+      if (currentUser) {
         logActivity(
-          user.id,
-          profile.nome,
+          currentUser.id,
+          currentUser.nome,
           'Alteração de Perfil',
-          `Perfil de ${selectedPlayer.nome} atualizado por ${profile.nome}.`
+          `Perfil de ${selectedPlayer.nome} atualizado por ${currentUser.nome}.`
         );
       }
 
@@ -206,6 +223,101 @@ export function JogadoresPage() {
       setMessage({ type: 'error', text: 'Erro ao atualizar perfil.' });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleCreatePlayer = async () => {
+    if (!newPlayerForm.nome || !newPlayerForm.email || !newPlayerForm.titulo_clube || !newPlayerForm.senha_cpf) {
+      setMessage({ type: 'error', text: 'Preencha os campos obrigatórios: Nome, Email, Título e Senha.' });
+      return;
+    }
+
+    setSubmitting(true);
+    setMessage(null);
+
+    try {
+      const { error } = await supabase
+        .from('perfis')
+        .insert([{
+          nome: newPlayerForm.nome,
+          email: newPlayerForm.email,
+          titulo_clube: newPlayerForm.titulo_clube,
+          senha_cpf: newPlayerForm.senha_cpf,
+          categoria: newPlayerForm.categoria,
+          nivel_acesso: newPlayerForm.nivel_acesso,
+          pontos: newPlayerForm.pontos || 0,
+          vitorias: newPlayerForm.vitorias || 0,
+          derrotas: newPlayerForm.derrotas || 0,
+          celular: newPlayerForm.celular,
+          idade: newPlayerForm.idade,
+          data_nascimento: newPlayerForm.data_nascimento,
+          peso: newPlayerForm.peso,
+          forehand: newPlayerForm.forehand,
+          backhand: newPlayerForm.backhand
+        }]);
+
+      if (error) throw error;
+
+      if (currentUser) {
+        logActivity(
+          currentUser.id,
+          currentUser.nome,
+          'Criação de Jogador',
+          `Novo jogador ${newPlayerForm.nome} criado por ${currentUser.nome}.`
+        );
+      }
+
+      setMessage({ type: 'success', text: 'Jogador criado com sucesso!' });
+      setIsAddingPlayer(false);
+      setNewPlayerForm({
+        categoria: 'Challenger',
+        nivel_acesso: 'user',
+        pontos: 0,
+        vitorias: 0,
+        derrotas: 0
+      });
+      fetchPlayers();
+    } catch (err: any) {
+      console.error('Error creating player:', err);
+      setMessage({ type: 'error', text: 'Erro ao criar jogador.' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!selectedPlayer || !newPassword || newPassword !== confirmPassword) {
+      setMessage({ type: 'error', text: 'As senhas não coincidem ou estão vazias.' });
+      return;
+    }
+
+    setPasswordSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('perfis')
+        .update({ senha_cpf: newPassword })
+        .eq('id', selectedPlayer.id);
+
+      if (error) throw error;
+
+      if (currentUser) {
+        logActivity(
+          currentUser.id,
+          currentUser.nome,
+          'Alteração de Senha',
+          `Senha de ${selectedPlayer.nome} alterada.`
+        );
+      }
+
+      setMessage({ type: 'success', text: 'Senha alterada com sucesso!' });
+      setIsChangingPassword(false);
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      console.error('Error changing password:', err);
+      setMessage({ type: 'error', text: 'Erro ao alterar senha.' });
+    } finally {
+      setPasswordSubmitting(false);
     }
   };
 
@@ -250,6 +362,17 @@ export function JogadoresPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4">
+          <button 
+            onClick={() => {
+              setIsAddingPlayer(true);
+              setMessage(null);
+            }}
+            className="flex items-center justify-center gap-2 px-6 py-2.5 md:py-3 bg-[#0F172A] text-white rounded-xl md:rounded-2xl text-sm font-black hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/20 uppercase tracking-widest"
+          >
+            <UserPlus className="w-4 h-4" />
+            Inserir Novo Tenista
+          </button>
+
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
             <input
@@ -394,13 +517,24 @@ export function JogadoresPage() {
                 </div>
                 <div className="flex items-center justify-between sm:justify-end gap-2">
                   {(!isEditing && (currentUser?.id === selectedPlayer.id || currentUser?.nivel_acesso === 'admin')) && (
-                    <button 
-                      onClick={() => setIsEditing(true)}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-[10px] md:text-xs font-black hover:bg-blue-100 transition-colors"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                      EDITAR
-                    </button>
+                    <div className="flex items-center gap-2">
+                      {currentUser?.id === selectedPlayer.id && (
+                        <button 
+                          onClick={() => setIsChangingPassword(true)}
+                          className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-600 rounded-xl text-[10px] md:text-xs font-black hover:bg-slate-200 transition-colors"
+                        >
+                          <Lock className="w-3.5 h-3.5" />
+                          MODIFICAR SENHA
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => setIsEditing(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-[10px] md:text-xs font-black hover:bg-blue-100 transition-colors"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        EDITAR
+                      </button>
+                    </div>
                   )}
                   {isEditing && (
                     <button 
@@ -637,6 +771,216 @@ export function JogadoresPage() {
                     Salvar Alterações
                   </button>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Add New Player Modal */}
+      <AnimatePresence>
+        {isAddingPlayer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white rounded-[40px] w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl"
+            >
+              <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+                    <UserPlus className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black text-[#0F172A] uppercase italic tracking-tighter">Novo Tenista</h2>
+                    <p className="text-xs text-slate-400 font-medium">Cadastro manual de atleta</p>
+                  </div>
+                </div>
+                <button onClick={() => setIsAddingPlayer(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                  <X className="w-6 h-6 text-slate-400" />
+                </button>
+              </div>
+
+              <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
+                {message && (
+                  <div className={cn(
+                    "p-4 rounded-2xl flex items-center gap-3 mb-8 text-sm font-bold",
+                    message.type === 'success' ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
+                  )}>
+                    {message.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+                    {message.text}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  <div className="space-y-4">
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-2">Obrigatório</h3>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-500 uppercase">Nome Completo</label>
+                      <input type="text" value={newPlayerForm.nome || ''} onChange={(e) => setNewPlayerForm(p => ({ ...p, nome: e.target.value }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-500 uppercase">Email</label>
+                      <input type="email" value={newPlayerForm.email || ''} onChange={(e) => setNewPlayerForm(p => ({ ...p, email: e.target.value }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-500 uppercase">Título do Clube</label>
+                      <input type="text" value={newPlayerForm.titulo_clube || ''} onChange={(e) => setNewPlayerForm(p => ({ ...p, titulo_clube: e.target.value }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-500 uppercase">Senha / CPF</label>
+                      <input type="text" value={newPlayerForm.senha_cpf || ''} onChange={(e) => setNewPlayerForm(p => ({ ...p, senha_cpf: e.target.value }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-2">Competição</h3>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-500 uppercase">Categoria</label>
+                      <select value={newPlayerForm.categoria} onChange={(e) => setNewPlayerForm(p => ({ ...p, categoria: e.target.value }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                        {CATEGORIES.filter(c => c !== 'TODOS').map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                      </select>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-black text-slate-500 uppercase">Pontos</label>
+                        <input type="number" value={newPlayerForm.pontos} onChange={(e) => setNewPlayerForm(p => ({ ...p, pontos: parseInt(e.target.value) }))} className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-black text-slate-500 uppercase">Vitórias</label>
+                        <input type="number" value={newPlayerForm.vitorias} onChange={(e) => setNewPlayerForm(p => ({ ...p, vitorias: parseInt(e.target.value) }))} className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[8px] font-black text-slate-500 uppercase">Derrotas</label>
+                        <input type="number" value={newPlayerForm.derrotas} onChange={(e) => setNewPlayerForm(p => ({ ...p, derrotas: parseInt(e.target.value) }))} className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-500 uppercase">Forehand</label>
+                      <select value={newPlayerForm.forehand || ''} onChange={(e) => setNewPlayerForm(p => ({ ...p, forehand: e.target.value as any }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Selecione...</option>
+                        <option value="destro">Destro</option>
+                        <option value="canhoto">Canhoto</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-500 uppercase">Backhand</label>
+                      <select value={newPlayerForm.backhand || ''} onChange={(e) => setNewPlayerForm(p => ({ ...p, backhand: e.target.value as any }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Selecione...</option>
+                        <option value="uma mao">Uma mão</option>
+                        <option value="duas maos">Duas mãos</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b pb-2">Pessoal</h3>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-500 uppercase">Celular</label>
+                      <input type="text" value={newPlayerForm.celular || ''} onChange={(e) => setNewPlayerForm(p => ({ ...p, celular: formatPhone(e.target.value) }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-500 uppercase">Idade</label>
+                      <input type="number" value={newPlayerForm.idade || ''} onChange={(e) => setNewPlayerForm(p => ({ ...p, idade: parseInt(e.target.value) }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-500 uppercase">Data de Nascimento</label>
+                      <input type="date" value={newPlayerForm.data_nascimento || ''} onChange={(e) => setNewPlayerForm(p => ({ ...p, data_nascimento: e.target.value }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-500 uppercase">Peso (kg)</label>
+                      <input type="number" value={newPlayerForm.peso || ''} onChange={(e) => setNewPlayerForm(p => ({ ...p, peso: parseInt(e.target.value) }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                <button onClick={() => setIsAddingPlayer(false)} className="px-6 py-3 bg-white border border-slate-200 text-slate-600 font-black rounded-2xl hover:bg-slate-100 transition-all text-xs uppercase tracking-widest">Cancelar</button>
+                <button 
+                  onClick={handleCreatePlayer}
+                  disabled={submitting}
+                  className="px-8 py-3 bg-[#0F172A] text-white font-black rounded-2xl shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 text-xs uppercase tracking-widest flex items-center gap-2"
+                >
+                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+                  Criar Jogador
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Change Password Modal */}
+      <AnimatePresence>
+        {isChangingPassword && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white rounded-[40px] w-full max-w-md p-8 shadow-2xl border border-slate-100"
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-500">
+                  <Key className="w-7 h-7" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-[#0F172A] uppercase italic tracking-tighter">Alterar Senha</h2>
+                  <p className="text-xs text-slate-400 font-medium">Defina uma nova senha de acesso</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Nova Senha</label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input 
+                      type="password" 
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Confirmar Nova Senha</label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input 
+                      type="password" 
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button 
+                    onClick={() => {
+                      setIsChangingPassword(false);
+                      setNewPassword('');
+                      setConfirmPassword('');
+                    }}
+                    className="flex-1 py-4 bg-slate-50 text-slate-600 font-black rounded-2xl hover:bg-slate-100 transition-all text-xs uppercase tracking-widest"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    onClick={handleChangePassword}
+                    disabled={passwordSubmitting}
+                    className="flex-1 py-4 bg-[#0F172A] text-white font-black rounded-2xl shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 text-xs uppercase tracking-widest flex items-center justify-center gap-2"
+                  >
+                    {passwordSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                    Confirmar
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
