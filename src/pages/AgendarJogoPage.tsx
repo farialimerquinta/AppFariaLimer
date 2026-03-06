@@ -25,23 +25,25 @@ export function AgendarJogoPage() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const nextThursdays = useMemo(() => {
+  const availableThursdays = useMemo(() => {
     const thursdays = [];
-    let current = startOfToday();
+    const year = 2026;
+    // Start from the first day of the year
+    let current = new Date(year, 0, 1);
     
-    // If today is Thursday, include it if it's still early, otherwise start from next week
-    if (!isThursday(current)) {
-      current = nextThursday(current);
+    // Find the first Thursday of the year
+    while (!isThursday(current)) {
+      current = new Date(current.getTime() + 24 * 60 * 60 * 1000);
     }
 
-    for (let i = 0; i < 12; i++) {
-      const date = addWeeks(current, i);
-      // Set a default time for the database (e.g., 19:00)
-      const dateWithTime = setMinutes(setHours(date, 19), 0);
+    // Generate all Thursdays for the year
+    while (current.getFullYear() === year) {
+      const dateWithTime = setMinutes(setHours(current, 19), 0);
       thursdays.push({
         value: dateWithTime.toISOString(),
-        label: format(date, "EEEE, dd 'de' MMMM", { locale: ptBR })
+        label: format(current, "EEEE, dd 'de' MMMM", { locale: ptBR })
       });
+      current = addWeeks(current, 1);
     }
     return thursdays;
   }, []);
@@ -275,7 +277,7 @@ export function AgendarJogoPage() {
                   className="w-full h-12 md:h-16 bg-slate-50 border-2 border-slate-100 rounded-xl md:rounded-2xl px-4 md:px-6 font-bold text-slate-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all appearance-none"
                 >
                   <option value="">Selecione uma Quinta-feira</option>
-                  {nextThursdays.map((day) => (
+                  {availableThursdays.map((day) => (
                     <option key={day.value} value={day.value}>
                       {day.label}
                     </option>
