@@ -116,7 +116,9 @@ export function JogadoresPage() {
                            p.titulo_clube.toLowerCase().includes(search.toLowerCase());
       const matchesCategory = categoryFilter === 'TODOS' || p.categoria === categoryFilter;
       const isAtivo = p.ativo !== false; // Treat undefined or true as active
-      return matchesSearch && matchesCategory && isAtivo;
+      const nivel = p.nivel_acesso?.toUpperCase();
+      const isNotMaster = nivel !== 'ADMIN_MASTER' && p.nome !== 'DJOKO MASTER';
+      return matchesSearch && matchesCategory && isAtivo && isNotMaster;
     });
   }, [players, search, categoryFilter]);
 
@@ -580,9 +582,9 @@ export function JogadoresPage() {
                   </div>
                 </div>
                 <div className="flex items-center justify-between sm:justify-end gap-2">
-                  {(!isEditing && (currentUser?.id === selectedPlayer.id || currentUser?.nivel_acesso === 'admin')) && (
+                  {(!isEditing && (currentUser?.id === selectedPlayer.id || currentUser?.nivel_acesso === 'ADMIN_MASTER' || currentUser?.nivel_acesso === 'ADMIN_TENISTA')) && (
                     <div className="flex items-center gap-2">
-                      {currentUser?.nivel_acesso === 'admin' && currentUser.id !== selectedPlayer.id && (
+                      {(currentUser?.nivel_acesso === 'ADMIN_MASTER' || currentUser?.nivel_acesso === 'ADMIN_TENISTA') && currentUser.id !== selectedPlayer.id && (
                         <button 
                           onClick={handleToggleAtivo}
                           className={cn(

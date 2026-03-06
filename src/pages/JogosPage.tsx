@@ -69,8 +69,8 @@ export function JogosPage() {
           data_jogo,
           status,
           categoria_evento,
-          jogador1:jogador1_id(id, nome, avatar_url, ativo),
-          jogador2:jogador2_id(id, nome, avatar_url, ativo),
+          jogador1:jogador1_id(id, nome, avatar_url, ativo, nivel_acesso),
+          jogador2:jogador2_id(id, nome, avatar_url, ativo, nivel_acesso),
           resultado:resultados(vencedor_id, placar_set1, placar_set2, placar_set3, is_wo)
         `)
         .order('data_jogo', { ascending: false });
@@ -82,7 +82,9 @@ export function JogosPage() {
       const { data } = await query;
       if (data) {
         const filteredJogos = (data as any[]).filter(j => 
-          j.jogador1?.ativo !== false && j.jogador2?.ativo !== false
+          j.jogador1?.ativo !== false && j.jogador2?.ativo !== false &&
+          j.jogador1?.nivel_acesso?.toUpperCase() !== 'ADMIN_MASTER' && j.jogador2?.nivel_acesso?.toUpperCase() !== 'ADMIN_MASTER' &&
+          j.jogador1?.nome !== 'DJOKO MASTER' && j.jogador2?.nome !== 'DJOKO MASTER'
         );
         setJogos(filteredJogos);
       }
@@ -391,16 +393,19 @@ export function JogosPage() {
               
               {jogo.status === 'agendado' ? (
                 <div className="flex gap-2 w-full md:w-auto">
-                  {user?.nivel_acesso === 'admin' && (
-                    <button 
-                      onClick={() => setGameToDelete(jogo)}
-                      disabled={deletingId === jogo.id}
-                      className="flex-1 md:flex-none px-4 md:px-4 py-2 bg-red-50 text-red-600 border border-red-100 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest hover:bg-red-100 transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
-                      <Trash2 className="w-3 md:w-3.5 h-3 md:h-3.5" />
-                      Apagar
-                    </button>
-                  )}
+                  <button 
+                    onClick={() => setGameToDelete(jogo)}
+                    disabled={(user?.nivel_acesso !== 'ADMIN_MASTER' && user?.nivel_acesso !== 'ADMIN_TENISTA') || deletingId === jogo.id}
+                    className={cn(
+                      "flex-1 md:flex-none px-4 md:px-4 py-2 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2",
+                      (user?.nivel_acesso === 'ADMIN_MASTER' || user?.nivel_acesso === 'ADMIN_TENISTA') 
+                        ? "bg-red-50 text-red-600 border border-red-100 hover:bg-red-100" 
+                        : "bg-slate-50 text-slate-400 border border-slate-100 cursor-not-allowed opacity-60"
+                    )}
+                  >
+                    <Trash2 className="w-3 md:w-3.5 h-3 md:h-3.5" />
+                    Apagar
+                  </button>
                   <a 
                     href="/registrar-resultado"
                     className="flex-[2] md:flex-none px-4 md:px-6 py-2 bg-[#0F172A] text-white rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2"
@@ -411,15 +416,19 @@ export function JogosPage() {
                 </div>
               ) : (
                 <div className="flex gap-2">
-                  {user?.nivel_acesso === 'admin' && (
-                    <button 
-                      onClick={handleEdit}
-                      className="flex-1 md:flex-none px-4 md:px-4 py-2 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest hover:bg-blue-100 transition-all shadow-sm flex items-center justify-center gap-2"
-                    >
-                      <Edit2 className="w-3 md:w-3.5 h-3 md:h-3.5" />
-                      Editar
-                    </button>
-                  )}
+                  <button 
+                    onClick={handleEdit}
+                    disabled={user?.nivel_acesso !== 'ADMIN_MASTER' && user?.nivel_acesso !== 'ADMIN_TENISTA'}
+                    className={cn(
+                      "flex-1 md:flex-none px-4 md:px-4 py-2 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2",
+                      (user?.nivel_acesso === 'ADMIN_MASTER' || user?.nivel_acesso === 'ADMIN_TENISTA') 
+                        ? "bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100" 
+                        : "bg-slate-50 text-slate-400 border border-slate-100 cursor-not-allowed opacity-60"
+                    )}
+                  >
+                    <Edit2 className="w-3 md:w-3.5 h-3 md:h-3.5" />
+                    Editar
+                  </button>
                   <button className="flex-1 md:flex-none px-4 md:px-4 py-2 border border-slate-200 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center gap-2">
                     <ExternalLink className="w-3 md:w-3.5 h-3 md:h-3.5" />
                     Watch

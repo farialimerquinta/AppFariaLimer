@@ -11,7 +11,7 @@ interface UserProfile {
   vitorias: number;
   derrotas: number;
   avatar_url: string | null;
-  nivel_acesso: 'admin' | 'user';
+  nivel_acesso: 'ADMIN_MASTER' | 'ADMIN_TENISTA' | 'user';
   ativo: boolean;
 }
 
@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           vitorias: 15,
           derrotas: 2,
           avatar_url: 'https://ui-avatars.com/api/?name=Admin+Demo&background=0D8ABC&color=fff',
-          nivel_acesso: 'admin',
+          nivel_acesso: 'ADMIN_MASTER',
           ativo: true,
         };
         setUser(demoUser);

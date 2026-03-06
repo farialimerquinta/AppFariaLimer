@@ -32,7 +32,7 @@ interface UserProfile {
   vitorias: number;
   derrotas: number;
   avatar_url: string | null;
-  nivel_acesso: 'admin' | 'user';
+  nivel_acesso: 'ADMIN_MASTER' | 'ADMIN_TENISTA' | 'user';
   senha_cpf: string;
   celular?: string;
   idade?: number;
@@ -44,7 +44,7 @@ interface UserProfile {
 }
 
 const CATEGORIES = ['Grand Slam', 'ATP 1000', 'ATP 500', 'ATP 250', 'Challenger'];
-const ACCESS_LEVELS = ['admin', 'user'];
+const ACCESS_LEVELS = ['ADMIN_MASTER', 'ADMIN_TENISTA', 'user'];
 
 export function AdminUsuariosPage() {
   const { user: currentUser } = useAuth();
@@ -86,9 +86,9 @@ export function AdminUsuariosPage() {
                            u.email.toLowerCase().includes(search.toLowerCase()) ||
                            u.titulo_clube.toLowerCase().includes(search.toLowerCase());
       const matchesCategory = categoryFilter === 'TODOS' || u.categoria === categoryFilter;
+      const isNotMaster = u.nivel_acesso !== 'ADMIN_MASTER';
       
-      // Handle status filter from the dropdown (if I added one)
-      return matchesSearch && matchesCategory;
+      return matchesSearch && matchesCategory && isNotMaster;
     });
   }, [users, search, categoryFilter]);
 
@@ -253,7 +253,9 @@ export function AdminUsuariosPage() {
                     <td className="px-6 py-4">
                       <span className={cn(
                         "px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest",
-                        u.nivel_acesso === 'admin' ? "bg-orange-100 text-orange-600" : "bg-blue-100 text-blue-600"
+                        u.nivel_acesso === 'ADMIN_MASTER' ? "bg-purple-100 text-purple-600" :
+                        u.nivel_acesso === 'ADMIN_TENISTA' ? "bg-orange-100 text-orange-600" : 
+                        "bg-blue-100 text-blue-600"
                       )}>
                         {u.nivel_acesso}
                       </span>

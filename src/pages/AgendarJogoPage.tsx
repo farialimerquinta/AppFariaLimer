@@ -12,6 +12,7 @@ interface Player {
   titulo_clube?: string;
   categoria?: string;
   ativo?: boolean;
+  nivel_acesso?: string;
 }
 
 export function AgendarJogoPage() {
@@ -38,7 +39,9 @@ export function AgendarJogoPage() {
     if (formData.categoria_evento) {
       const filtered = jogadores.filter(j => 
         j.categoria === formData.categoria_evento && 
-        j.ativo !== false
+        j.ativo !== false &&
+        j.nivel_acesso?.toUpperCase() !== 'ADMIN_MASTER' &&
+        j.nome !== 'DJOKO MASTER'
       );
       setFilteredJogadores(filtered);
       // Reset players if they don't belong to the new category
@@ -55,7 +58,7 @@ export function AgendarJogoPage() {
   const fetchJogadores = async () => {
     const { data } = await supabase
       .from('perfis')
-      .select('id, nome, titulo_clube, categoria')
+      .select('id, nome, titulo_clube, categoria, ativo, nivel_acesso')
       .order('nome');
     
     if (data) {

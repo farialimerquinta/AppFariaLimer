@@ -21,6 +21,7 @@ interface Player {
   taxa_vitoria: number;
   avatar_url: string | null;
   ativo?: boolean;
+  nivel_acesso?: string;
 }
 
 const CATEGORIES = ['TODOS', 'Grand Slam', 'ATP 1000', 'ATP 500', 'ATP 250', 'Challenger'];
@@ -35,12 +36,9 @@ export function RankingPage() {
   const fetchRanking = useCallback(async () => {
     setLoading(true);
     try {
-      // Use a single query and filter client-side if the dataset is small, 
-      // or keep server-side filtering if it's large. 
-      // For this app, server-side is fine but let's ensure it's efficient.
       const { data, error } = await supabase
         .from('perfis')
-        .select('id, nome, email, categoria, pontos, vitorias, derrotas, jogos_totais, jogos_realizados, games_ganhos, games_perdidos, saldo_games, taxa_vitoria, avatar_url')
+        .select('id, nome, email, categoria, pontos, vitorias, derrotas, jogos_totais, jogos_realizados, games_ganhos, games_perdidos, saldo_games, taxa_vitoria, avatar_url, nivel_acesso, ativo')
         .order('pontos', { ascending: false })
         .order('vitorias', { ascending: false })
         .order('saldo_games', { ascending: false });
@@ -66,8 +64,10 @@ export function RankingPage() {
     return players.filter(p => {
       const matchesSearch = p.nome.toLowerCase().includes(searchLower) || p.email.toLowerCase().includes(searchLower);
       const matchesCategory = category === 'TODOS' || p.categoria === category;
-      const isAtivo = p.ativo !== false; // Treat undefined or true as active
-      return matchesSearch && matchesCategory && isAtivo;
+      const isAtivo = p.ativo !== false;
+      const nivel = p.nivel_acesso?.toUpperCase();
+      const isNotMaster = nivel !== 'ADMIN_MASTER' && p.nome !== 'DJOKO MASTER';
+      return matchesSearch && matchesCategory && isAtivo && isNotMaster;
     });
   }, [players, search, category]);
 

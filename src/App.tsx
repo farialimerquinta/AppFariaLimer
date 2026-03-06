@@ -63,7 +63,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 
   if (loading) return <LoadingFallback />;
 
-  if (!user || user.nivel_acesso !== 'admin') {
+  if (!user || (user.nivel_acesso !== 'ADMIN_MASTER' && user.nivel_acesso !== 'ADMIN_TENISTA')) {
     return <Navigate to="/" />;
   }
 

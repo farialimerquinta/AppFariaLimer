@@ -21,6 +21,7 @@ interface Player {
   games_perdidos: number;
   saldo_games: number;
   ativo?: boolean;
+  nivel_acesso?: string;
 }
 
 interface Jogo {
@@ -58,6 +59,8 @@ export function H2HPage() {
     return players.filter(p => 
       p.id !== player2Id && 
       p.ativo !== false &&
+      p.nivel_acesso?.toUpperCase() !== 'ADMIN_MASTER' &&
+      p.nome !== 'DJOKO MASTER' &&
       (search1 === '' || p.nome.toLowerCase().includes(searchLower))
     ).slice(0, 5);
   }, [players, search1, player2Id]);
@@ -67,6 +70,8 @@ export function H2HPage() {
     return players.filter(p => 
       p.id !== player1Id && 
       p.ativo !== false &&
+      p.nivel_acesso?.toUpperCase() !== 'ADMIN_MASTER' &&
+      p.nome !== 'DJOKO MASTER' &&
       (search2 === '' || p.nome.toLowerCase().includes(searchLower))
     ).slice(0, 5);
   }, [players, search2, player1Id]);

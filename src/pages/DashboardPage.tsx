@@ -58,8 +58,8 @@ export function DashboardPage() {
           data_jogo,
           status,
           categoria_evento,
-          jogador1:jogador1_id(id, nome, avatar_url, ativo),
-          jogador2:jogador2_id(id, nome, avatar_url, ativo)
+          jogador1:jogador1_id(id, nome, avatar_url, ativo, nivel_acesso),
+          jogador2:jogador2_id(id, nome, avatar_url, ativo, nivel_acesso)
         `)
         .eq('status', 'agendado')
         .gte('data_jogo', new Date().toISOString())
@@ -74,8 +74,8 @@ export function DashboardPage() {
           data_jogo,
           status,
           categoria_evento,
-          jogador1:jogador1_id(id, nome, avatar_url, ativo),
-          jogador2:jogador2_id(id, nome, avatar_url, ativo),
+          jogador1:jogador1_id(id, nome, avatar_url, ativo, nivel_acesso),
+          jogador2:jogador2_id(id, nome, avatar_url, ativo, nivel_acesso),
           resultado:resultados(vencedor_id, placar_set1, placar_set2, placar_set3, is_wo)
         `)
         .eq('status', 'realizado')
@@ -95,13 +95,17 @@ export function DashboardPage() {
 
       if (upcoming) {
         const filteredUpcoming = (upcoming as any[]).filter(j => 
-          j.jogador1?.ativo !== false && j.jogador2?.ativo !== false
+          j.jogador1?.ativo !== false && j.jogador2?.ativo !== false &&
+          j.jogador1?.nivel_acesso?.toUpperCase() !== 'ADMIN_MASTER' && j.jogador2?.nivel_acesso?.toUpperCase() !== 'ADMIN_MASTER' &&
+          j.jogador1?.nome !== 'DJOKO MASTER' && j.jogador2?.nome !== 'DJOKO MASTER'
         );
         setProximosJogos(filteredUpcoming);
       }
       if (recent) {
         const filteredRecent = (recent as any[]).filter(j => 
-          j.jogador1?.ativo !== false && j.jogador2?.ativo !== false
+          j.jogador1?.ativo !== false && j.jogador2?.ativo !== false &&
+          j.jogador1?.nivel_acesso?.toUpperCase() !== 'ADMIN_MASTER' && j.jogador2?.nivel_acesso?.toUpperCase() !== 'ADMIN_MASTER' &&
+          j.jogador1?.nome !== 'DJOKO MASTER' && j.jogador2?.nome !== 'DJOKO MASTER'
         );
         setResultadosRecentes(filteredRecent);
       }
@@ -197,7 +201,7 @@ export function DashboardPage() {
             { label: 'Ranking', icon: Trophy, path: '/ranking', color: 'bg-red-50 text-red-600' },
             { label: 'H2H', icon: ArrowLeftRight, path: '/h2h', color: 'bg-orange-50 text-orange-600' },
             { label: 'Jogadores', icon: Users, path: '/jogadores', color: 'bg-purple-50 text-purple-600' },
-            ...(user?.nivel_acesso === 'admin' ? [{ label: 'Admin', icon: UserIcon, path: '/admin/usuarios', color: 'bg-slate-900 text-white' }] : []),
+            ...(user?.nivel_acesso === 'ADMIN_MASTER' || user?.nivel_acesso === 'ADMIN_TENISTA' ? [{ label: 'Admin', icon: UserIcon, path: '/admin/usuarios', color: 'bg-slate-900 text-white' }] : []),
           ].map((item) => (
             <button
               key={item.label}

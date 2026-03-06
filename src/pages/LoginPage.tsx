@@ -77,7 +77,7 @@ export function LoginPage() {
                   value={tituloClube}
                   onChange={(e) => setTituloClube(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                  placeholder="Ex: FL-001"
+                  placeholder="Ex: 9999"
                   required
                 />
               </div>
@@ -85,7 +85,7 @@ export function LoginPage() {
 
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Senha (4 primeiros dígitos do CPF)
+                Senha
               </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -118,12 +118,9 @@ export function LoginPage() {
           </form>
 
           <div className="mt-8 pt-6 border-t border-slate-100 text-center">
-            <button 
-              onClick={() => navigate('/recuperar-acesso')}
-              className="text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors"
-            >
-              Esqueceu seu acesso? <span className="text-blue-600 font-bold underline">Recuperar agora</span>
-            </button>
+            <p className="text-sm font-medium text-slate-500">
+              Esqueceu sua senha: <span className="text-blue-600 font-bold">envie uma mensagem para o administrador Resetar</span>
+            </p>
           </div>
         </div>
 

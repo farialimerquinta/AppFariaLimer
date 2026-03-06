@@ -17,6 +17,7 @@ interface Player {
   categoria: string;
   titulo_clube: string;
   ativo?: boolean;
+  nivel_acesso?: string;
 }
 
 interface Jogo {
@@ -66,8 +67,8 @@ export function RegistrarResultadoPage() {
           data_jogo,
           status,
           categoria_evento,
-          jogador1:jogador1_id(id, nome, avatar_url, categoria, titulo_clube, ativo),
-          jogador2:jogador2_id(id, nome, avatar_url, categoria, titulo_clube, ativo)
+          jogador1:jogador1_id(id, nome, avatar_url, categoria, titulo_clube, ativo, nivel_acesso),
+          jogador2:jogador2_id(id, nome, avatar_url, categoria, titulo_clube, ativo, nivel_acesso)
         `)
         .eq('status', 'agendado')
         .order('data_jogo', { ascending: true });
@@ -75,7 +76,12 @@ export function RegistrarResultadoPage() {
       if (fetchError) throw fetchError;
       if (data) {
         const filteredJogos = (data as any[]).filter(j => 
-          j.jogador1?.ativo !== false && j.jogador2?.ativo !== false
+          j.jogador1?.ativo !== false && 
+          j.jogador2?.ativo !== false &&
+          j.jogador1?.nivel_acesso?.toUpperCase() !== 'ADMIN_MASTER' &&
+          j.jogador2?.nivel_acesso?.toUpperCase() !== 'ADMIN_MASTER' &&
+          j.jogador1?.nome !== 'DJOKO MASTER' &&
+          j.jogador2?.nome !== 'DJOKO MASTER'
         );
         setJogos(filteredJogos);
       }
