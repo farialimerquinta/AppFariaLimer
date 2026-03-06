@@ -236,23 +236,26 @@ export function JogosPage() {
           className="bg-white rounded-[24px] md:rounded-[32px] border border-slate-100 p-4 md:p-8 shadow-sm hover:shadow-xl transition-all group"
         >
           {/* Card Header: Round & Status */}
-          <div className="flex items-center justify-between mb-4 md:mb-6">
-            <div className="flex items-center gap-2 md:gap-3">
-              <h3 className="text-base md:text-xl font-black text-[#0F172A] tracking-tight">
-                {jogo.categoria_evento || 'Round of 32'}
-              </h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 md:mb-8">
+            <div className="flex flex-wrap items-center gap-2 md:gap-3">
+              <div className="bg-[#0F172A] text-white px-3 md:px-4 py-1 md:py-1.5 rounded-full shadow-lg shadow-slate-900/10 flex items-center gap-2">
+                <Trophy className="w-3 md:w-4 h-3 md:h-4 text-yellow-500" />
+                <span className="text-[10px] md:text-xs font-black uppercase tracking-wider">
+                  {jogo.categoria_evento || 'Round of 32'}
+                </span>
+              </div>
               {isLive && (
-                <span className="bg-red-500 text-white text-[8px] md:text-[10px] font-black px-1.5 md:px-2 py-0.5 rounded uppercase tracking-wider animate-pulse">
+                <span className="bg-red-500 text-white text-[8px] md:text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-wider animate-pulse shadow-lg shadow-red-500/20">
                   Live
                 </span>
               )}
-              <span className="text-slate-400 text-[10px] md:text-sm font-medium flex items-center gap-1">
+              <span className="text-slate-400 text-[10px] md:text-xs font-bold flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-full border border-slate-100">
                 <MapPin className="w-2.5 h-2.5 md:w-3 md:h-3" />
                 Central
               </span>
             </div>
-            <div className="flex items-center gap-1 md:gap-2 text-slate-400 font-mono text-[10px] md:text-sm font-bold">
-              <Timer className="w-3 h-3 md:w-4 md:h-4" />
+            <div className="flex items-center gap-1.5 md:gap-2 text-slate-500 font-mono text-[10px] md:text-xs font-black bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 self-start sm:self-auto">
+              <Timer className="w-3 h-3 md:w-3.5 md:h-3.5 text-blue-500" />
               {format(new Date(jogo.data_jogo), 'HH:mm')}
             </div>
           </div>
@@ -392,8 +395,12 @@ export function JogosPage() {
             </div>
             
             <div className="flex items-center gap-2">
-              <button className="flex-1 md:flex-none px-3 md:px-4 py-2 border border-slate-200 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm">H2H</button>
-              <button className="flex-1 md:flex-none px-3 md:px-4 py-2 border border-slate-200 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm">Stats</button>
+              <button 
+                onClick={() => navigate('/h2h', { state: { p1: (jogo.jogador1 as any).id, p2: (jogo.jogador2 as any).id } })}
+                className="flex-1 md:flex-none px-4 md:px-6 py-2 border-2 border-slate-100 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black text-slate-600 uppercase tracking-widest hover:bg-[#0F172A] hover:text-white hover:border-[#0F172A] transition-all shadow-sm active:scale-95"
+              >
+                H2H
+              </button>
               
               {jogo.status === 'agendado' ? (
                 <div className="flex gap-2 w-full md:w-auto">

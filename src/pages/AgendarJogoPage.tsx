@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Calendar as CalendarIcon, User, FileText, Send, AlertCircle, CheckCircle2, Trophy, Loader2, Clock } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { logActivity } from '../services/logService';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'motion/react';
 import { cn } from '../utils';
+import { addWeeks, format, nextThursday, startOfToday, isThursday, setHours, setMinutes, startOfMonth, endOfMonth, getMonth, getYear } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface Player {
   id: string;
@@ -22,6 +24,27 @@ export function AgendarJogoPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const nextThursdays = useMemo(() => {
+    const thursdays = [];
+    let current = startOfToday();
+    
+    // If today is Thursday, include it if it's still early, otherwise start from next week
+    if (!isThursday(current)) {
+      current = nextThursday(current);
+    }
+
+    for (let i = 0; i < 12; i++) {
+      const date = addWeeks(current, i);
+      // Set a default time for the database (e.g., 19:00)
+      const dateWithTime = setMinutes(setHours(date, 19), 0);
+      thursdays.push({
+        value: dateWithTime.toISOString(),
+        label: format(date, "EEEE, dd 'de' MMMM", { locale: ptBR })
+      });
+    }
+    return thursdays;
+  }, []);
 
   const [formData, setFormData] = useState({
     data_jogo: '',
@@ -66,6 +89,34 @@ export function AgendarJogoPage() {
     }
   };
 
+  const checkDuplicateMatchup = async (id1: string, id2: string, dateStr: string) => {
+    const date = new Date(dateStr);
+    const year = getYear(date);
+    const month = getMonth(date); // 0-indexed
+
+    let startDate, endDate;
+    if (month < 6) {
+      // 1st Semester: Jan - Jun
+      startDate = new Date(year, 0, 1).toISOString();
+      endDate = new Date(year, 5, 30, 23, 59, 59).toISOString();
+    } else {
+      // 2nd Semester: Jul - Dec
+      startDate = new Date(year, 6, 1).toISOString();
+      endDate = new Date(year, 11, 31, 23, 59, 59).toISOString();
+    }
+
+    // Check for existing games between these two players in the same semester
+    const { data, error } = await supabase
+      .from('jogos')
+      .select('id, status, data_jogo')
+      .or(`and(jogador1_id.eq.${id1},jogador2_id.eq.${id2}),and(jogador1_id.eq.${id2},jogador2_id.eq.${id1})`)
+      .gte('data_jogo', startDate)
+      .lte('data_jogo', endDate);
+
+    if (error) throw error;
+    return data && data.length > 0 ? data[0] : null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -74,6 +125,12 @@ export function AgendarJogoPage() {
 
     if (!formData.categoria_evento) {
       setError('Por favor, selecione a categoria do evento.');
+      setSubmitting(false);
+      return;
+    }
+
+    if (!formData.data_jogo) {
+      setError('Por favor, selecione a data do jogo.');
       setSubmitting(false);
       return;
     }
@@ -90,41 +147,57 @@ export function AgendarJogoPage() {
       return;
     }
 
-    const { error: insertError } = await supabase
-      .from('jogos')
-      .insert([
-        {
-          ...formData,
-          status: 'agendado'
-        }
-      ]);
-
-    if (insertError) {
-      setError(insertError.message);
-    } else {
-      // Log activity
-      if (user) {
-        const j1 = jogadores.find(j => j.id === formData.jogador1_id)?.nome;
-        const j2 = jogadores.find(j => j.id === formData.jogador2_id)?.nome;
-        logActivity(
-          user.id, 
-          user.nome, 
-          'Agendamento de Jogo', 
-          `Jogo agendado: ${j1} vs ${j2} em ${formData.data_jogo} (${formData.categoria_evento})`
-        );
+    try {
+      // Check for duplicate matchup in the same semester
+      const existingGame = await checkDuplicateMatchup(formData.jogador1_id, formData.jogador2_id, formData.data_jogo);
+      
+      if (existingGame) {
+        const gameDate = format(new Date(existingGame.data_jogo), "dd/MM/yyyy");
+        const statusMsg = existingGame.status === 'realizado' ? 'já foi realizado' : 'já está agendado';
+        setError(`Este confronto ${statusMsg} neste semestre (Data: ${gameDate}). Os confrontos não podem se repetir semestralmente.`);
+        setSubmitting(false);
+        return;
       }
 
-      setSuccess(true);
-      setFormData({
-        data_jogo: '',
-        jogador1_id: '',
-        jogador2_id: '',
-        categoria_evento: '',
-        observacoes: ''
-      });
-      setTimeout(() => setSuccess(false), 3000);
+      const { error: insertError } = await supabase
+        .from('jogos')
+        .insert([
+          {
+            ...formData,
+            status: 'agendado'
+          }
+        ]);
+
+      if (insertError) {
+        setError(insertError.message);
+      } else {
+        // Log activity
+        if (user) {
+          const j1 = jogadores.find(j => j.id === formData.jogador1_id)?.nome;
+          const j2 = jogadores.find(j => j.id === formData.jogador2_id)?.nome;
+          logActivity(
+            user.id, 
+            user.nome, 
+            'Agendamento de Jogo', 
+            `Jogo agendado: ${j1} vs ${j2} em ${format(new Date(formData.data_jogo), "dd/MM/yyyy")} (${formData.categoria_evento})`
+          );
+        }
+
+        setSuccess(true);
+        setFormData({
+          data_jogo: '',
+          jogador1_id: '',
+          jogador2_id: '',
+          categoria_evento: '',
+          observacoes: ''
+        });
+        setTimeout(() => setSuccess(false), 3000);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Erro ao processar o agendamento.');
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   return (
@@ -193,15 +266,21 @@ export function AgendarJogoPage() {
               <div className="space-y-3 md:space-y-4">
                 <label className="flex items-center gap-2 text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest ml-1">
                   <CalendarIcon className="w-3.5 md:w-4 h-3.5 md:h-4" />
-                  2. Data e Hora
+                  2. Data do Jogo (Quintas-feiras)
                 </label>
-                <input 
-                  type="datetime-local"
+                <select 
                   required
                   value={formData.data_jogo}
                   onChange={(e) => setFormData({ ...formData, data_jogo: e.target.value })}
-                  className="w-full h-12 md:h-16 bg-slate-50 border-2 border-slate-100 rounded-xl md:rounded-2xl px-4 md:px-6 font-bold text-slate-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
-                />
+                  className="w-full h-12 md:h-16 bg-slate-50 border-2 border-slate-100 rounded-xl md:rounded-2xl px-4 md:px-6 font-bold text-slate-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all appearance-none"
+                >
+                  <option value="">Selecione uma Quinta-feira</option>
+                  {nextThursdays.map((day) => (
+                    <option key={day.value} value={day.value}>
+                      {day.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 

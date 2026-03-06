@@ -204,9 +204,10 @@ export function RankingPage() {
         </div>
       )}
 
-      {/* Ranking Table */}
+      {/* Ranking Table / Mobile Cards */}
       <div className="bg-white rounded-[32px] shadow-sm border border-slate-100 overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Desktop Table View */}
+        <div className="hidden lg:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -309,6 +310,76 @@ export function RankingPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="lg:hidden divide-y divide-slate-50">
+          {loading ? (
+            <div className="px-6 py-20 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            </div>
+          ) : filteredPlayers.length === 0 ? (
+            <div className="px-6 py-20 text-center text-slate-400 italic">
+              Nenhum jogador encontrado.
+            </div>
+          ) : (
+            filteredPlayers.map((player, index) => (
+              <div key={player.id} className="p-4 flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black",
+                      index === 0 ? "bg-yellow-500 text-white" :
+                      index === 1 ? "bg-slate-400 text-white" :
+                      index === 2 ? "bg-orange-400 text-white" :
+                      "bg-emerald-100 text-emerald-600"
+                    )}>
+                      {index + 1}
+                    </div>
+                    <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-slate-100">
+                      <img src={player.avatar_url || `https://ui-avatars.com/api/?name=${player.nome}`} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900 leading-none mb-1">{player.nome}</p>
+                      <p className="text-[10px] text-slate-400">{player.categoria}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <TrendingUp className="w-3 h-3 text-emerald-500" />
+                      <span className="text-sm font-black text-slate-900">{player.pontos} pts</span>
+                    </div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{player.taxa_vitoria}% Win Rate</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-4 gap-2">
+                  <div className="bg-slate-50 p-2 rounded-lg text-center">
+                    <p className="text-[8px] font-black text-slate-400 uppercase mb-1">V / D</p>
+                    <p className="text-[10px] font-bold text-slate-700">{player.vitorias} / {player.derrotas}</p>
+                  </div>
+                  <div className="bg-slate-50 p-2 rounded-lg text-center">
+                    <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Jogos</p>
+                    <p className="text-[10px] font-bold text-slate-700">{player.jogos_realizados}</p>
+                  </div>
+                  <div className="bg-slate-50 p-2 rounded-lg text-center">
+                    <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Games</p>
+                    <p className="text-[10px] font-bold text-slate-700">{player.games_ganhos}/{player.games_perdidos}</p>
+                  </div>
+                  <div className="bg-slate-50 p-2 rounded-lg text-center">
+                    <p className="text-[8px] font-black text-slate-400 uppercase mb-1">Saldo</p>
+                    <p className={cn(
+                      "text-[10px] font-black",
+                      player.saldo_games > 0 ? "text-emerald-500" : 
+                      player.saldo_games < 0 ? "text-red-500" : "text-slate-400"
+                    )}>
+                      {player.saldo_games > 0 ? `+${player.saldo_games}` : player.saldo_games}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

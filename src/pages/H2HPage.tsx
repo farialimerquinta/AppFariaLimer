@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Trophy, Users, Search, ChevronRight, User, ArrowRightLeft, Calendar, MapPin, CheckCircle2, TrendingUp, Medal, LayoutDashboard } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { cn } from '../utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -41,6 +41,7 @@ interface Jogo {
 
 export function H2HPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [player1Id, setPlayer1Id] = useState<string>('');
@@ -53,6 +54,16 @@ export function H2HPage() {
   const [search2, setSearch2] = useState('');
   const [showResults1, setShowResults1] = useState(false);
   const [showResults2, setShowResults2] = useState(false);
+
+  // Handle incoming state from other pages (like JogosPage)
+  useEffect(() => {
+    if (location.state?.p1 && location.state?.p2) {
+      setPlayer1Id(location.state.p1);
+      setPlayer2Id(location.state.p2);
+      // Clear state to avoid re-triggering on refresh if desired, 
+      // but usually keeping it is fine for the session.
+    }
+  }, [location.state]);
 
   const filteredPlayers1 = useMemo(() => {
     const searchLower = search1.toLowerCase();
@@ -414,11 +425,13 @@ export function H2HPage() {
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 bg-[#0F172A] rounded-xl flex items-center justify-center text-yellow-500">
-                            <Trophy className="w-5 h-5" />
+                          <div className="bg-[#0F172A] text-white px-3 py-1 rounded-full shadow-lg shadow-slate-900/10 flex items-center gap-2">
+                            <Trophy className="w-3 h-3 text-yellow-500" />
+                            <span className="text-[10px] font-black uppercase tracking-wider">
+                              {match.categoria_evento || 'Tournament'}
+                            </span>
                           </div>
                           <div>
-                            <p className="text-sm font-black text-[#0F172A] uppercase tracking-tighter">{match.categoria_evento}</p>
                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{format(new Date(match.data_jogo), "MMMM yyyy", { locale: ptBR })}</p>
                           </div>
                         </div>
