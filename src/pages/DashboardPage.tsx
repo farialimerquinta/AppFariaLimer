@@ -155,56 +155,56 @@ export function DashboardPage() {
       </div>
 
       {/* Header Banner */}
-      <div className="relative bg-[#0F172A] rounded-[32px] md:rounded-[40px] p-6 md:p-12 mb-8 md:mb-10 text-center overflow-hidden shadow-2xl border border-white/5">
+      <div className="relative bg-[#0F172A] rounded-[24px] md:rounded-[40px] p-4 md:p-12 mb-6 md:mb-10 text-center overflow-hidden shadow-2xl border border-white/5">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
           <img 
             src="https://images.unsplash.com/photo-1595435066359-62f32ff9d51d?q=80&w=1920&auto=format&fit=crop" 
             alt="Tennis Court" 
-            className="w-full h-full object-cover opacity-40"
+            className="w-full h-full object-cover opacity-30"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A]/80 via-[#0F172A]/60 to-[#0F172A]"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A]/70 via-[#0F172A]/50 to-[#0F172A]"></div>
         </div>
 
         <div className="relative z-10">
-          <div className="flex flex-col items-center group cursor-pointer mb-6 md:mb-8">
-            <div className="relative pr-4">
-              <span className="text-5xl md:text-7xl font-black italic tracking-tighter leading-none bg-gradient-to-b from-yellow-200 via-yellow-500 to-yellow-700 bg-clip-text text-transparent drop-shadow-2xl">
+          <div className="flex flex-col items-center group cursor-pointer mb-4 md:mb-8">
+            <div className="relative pr-3 md:pr-4">
+              <span className="text-4xl md:text-7xl font-black italic tracking-tighter leading-none bg-gradient-to-b from-yellow-200 via-yellow-500 to-yellow-700 bg-clip-text text-transparent drop-shadow-2xl">
                 ATP
               </span>
-              <div className="absolute top-1/2 left-0 w-[calc(100%-1rem)] h-[2px] md:h-[3px] bg-white -rotate-12 transform -translate-y-1/2 opacity-40"></div>
+              <div className="absolute top-1/2 left-0 w-[calc(100%-0.75rem)] h-[1.5px] md:h-[3px] bg-white -rotate-12 transform -translate-y-1/2 opacity-40"></div>
             </div>
-            <div className="mt-1 flex flex-col items-center">
-              <span className="text-sm md:text-xl font-black tracking-[0.4em] bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent uppercase leading-none">
+            <div className="mt-0.5 flex flex-col items-center">
+              <span className="text-[10px] md:text-xl font-black tracking-[0.3em] md:tracking-[0.4em] bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent uppercase leading-none">
                 FARIA LIMER
               </span>
             </div>
           </div>
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-3 py-1 md:px-4 md:py-1.5 bg-yellow-500/10 border border-yellow-500/20 rounded-full mb-4 md:mb-6"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 md:px-4 md:py-1.5 bg-yellow-500/10 border border-yellow-500/20 rounded-full mb-3 md:mb-6"
           >
-            <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-            <span className="text-[8px] md:text-[10px] font-black text-yellow-500 uppercase tracking-[0.2em]">Temporada 2026</span>
+            <div className="w-1 h-1 md:w-2 md:h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+            <span className="text-[7px] md:text-[10px] font-black text-yellow-500 uppercase tracking-[0.15em] md:tracking-[0.2em]">Temporada 2026</span>
           </motion.div>
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-4 tracking-tighter uppercase italic leading-tight">
+          <h1 className="text-xl md:text-5xl lg:text-6xl font-black text-white mb-2 md:mb-4 tracking-tighter uppercase italic leading-tight">
             RANKING FARIA LIMER <span className="text-yellow-500">|</span> QUINTA
           </h1>
-          <p className="text-slate-300 text-base md:text-xl font-medium tracking-wide">
+          <p className="text-slate-300 text-xs md:text-xl font-medium tracking-wide">
             Onde os campeões se encontram toda quinta-feira!
           </p>
         </div>
       </div>
 
       {/* Quick Access Grid */}
-      <div className="mb-12">
-        <div className="flex items-center gap-2 mb-6">
-          <LayoutDashboard className="w-5 h-5 text-slate-400" />
-          <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Acesso Rápido</h2>
+      <div className="mb-8 md:mb-12">
+        <div className="flex items-center gap-2 mb-4 md:mb-6">
+          <LayoutDashboard className="w-4 h-4 md:w-5 md:h-5 text-slate-400" />
+          <h2 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Acesso Rápido</h2>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-8 gap-3 md:gap-4">
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-8 gap-2 md:gap-4">
           {[
             { label: 'Início', icon: LayoutDashboard, path: '/', color: 'bg-slate-100 text-slate-600' },
             { label: 'Agendar', icon: PlusCircle, path: '/agendar-jogos', color: 'bg-blue-50 text-blue-600' },
@@ -213,38 +213,38 @@ export function DashboardPage() {
             { label: 'Ranking', icon: Trophy, path: '/ranking', color: 'bg-red-50 text-red-600' },
             { label: 'H2H', icon: ArrowLeftRight, path: '/h2h', color: 'bg-orange-50 text-orange-600' },
             { label: 'Jogadores', icon: Users, path: '/jogadores', color: 'bg-purple-50 text-purple-600' },
-            ...(user?.nivel_acesso === 'ADMIN_MASTER' || user?.nivel_acesso === 'ADMIN_TENISTA' ? [{ label: 'Admin', icon: UserIcon, path: '/admin/usuarios', color: 'bg-slate-900 text-white' }] : []),
+            ...(user?.nivel_acesso === 'ADMIN_MASTER' || user?.nivel_acesso === 'ADMIN_TENISTA' || user?.nivel_acesso === 'ADMIN' ? [{ label: 'Admin', icon: UserIcon, path: '/admin/usuarios', color: 'bg-slate-900 text-white' }] : []),
           ].map((item) => (
             <button
               key={item.label}
               onClick={() => navigate(item.path)}
-              className="group flex flex-col items-center justify-center p-4 md:p-6 bg-white rounded-[24px] md:rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:scale-[1.05] active:scale-95 transition-all"
+              className="group flex flex-col items-center justify-center p-3 md:p-6 bg-white rounded-[20px] md:rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:scale-[1.05] active:scale-95 transition-all"
             >
-              <div className={cn("w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center mb-3 transition-transform group-hover:scale-110", item.color)}>
-                <item.icon className="w-5 h-5 md:w-6 md:h-6" />
+              <div className={cn("w-8 h-8 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center mb-2 md:mb-3 transition-transform group-hover:scale-110", item.color)}>
+                <item.icon className="w-4 h-4 md:w-6 md:h-6" />
               </div>
-              <span className="text-[10px] md:text-xs font-black text-slate-900 uppercase tracking-tight">{item.label}</span>
+              <span className="text-[8px] md:text-xs font-black text-slate-900 uppercase tracking-tight text-center">{item.label}</span>
             </button>
           ))}
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mb-8 md:mb-12">
         {stats.map((stat, i) => (
           <motion.div 
             key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col"
+            className="bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 flex flex-col"
           >
-            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-4", stat.color)}>
-              <stat.icon className="text-white w-6 h-6" />
+            <div className={cn("w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center mb-2 md:mb-4", stat.color)}>
+              <stat.icon className="text-white w-4 h-4 md:w-6 md:h-6" />
             </div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{stat.label}</p>
-            <h2 className="text-3xl font-black text-slate-900 mb-1">{stat.value}</h2>
-            <p className="text-xs text-slate-500">{stat.sub}</p>
+            <p className="text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5 md:mb-1">{stat.label}</p>
+            <h2 className="text-xl md:text-3xl font-black text-slate-900 mb-0.5 md:mb-1">{stat.value}</h2>
+            <p className="text-[10px] md:text-xs text-slate-500">{stat.sub}</p>
           </motion.div>
         ))}
       </div>
