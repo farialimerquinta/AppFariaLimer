@@ -32,7 +32,7 @@ interface UserProfile {
   vitorias: number;
   derrotas: number;
   avatar_url: string | null;
-  nivel_acesso: 'ADMIN_MASTER' | 'ADMIN_TENISTA' | 'user';
+  nivel_acesso: 'ADMIN_MASTER' | 'ADMIN_TENISTA' | 'ADMIN' | 'user';
   senha_cpf: string;
   celular?: string;
   idade?: number;
@@ -44,7 +44,7 @@ interface UserProfile {
 }
 
 const CATEGORIES = ['Grand Slam', 'ATP 1000', 'ATP 500', 'ATP 250', 'Challenger'];
-const ACCESS_LEVELS = ['ADMIN_MASTER', 'ADMIN_TENISTA', 'user'];
+const ACCESS_LEVELS = ['ADMIN_MASTER', 'ADMIN_TENISTA', 'ADMIN', 'user'];
 
 export function AdminUsuariosPage() {
   const { user: currentUser } = useAuth();
@@ -255,6 +255,7 @@ export function AdminUsuariosPage() {
                         "px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest",
                         u.nivel_acesso === 'ADMIN_MASTER' ? "bg-purple-100 text-purple-600" :
                         u.nivel_acesso === 'ADMIN_TENISTA' ? "bg-orange-100 text-orange-600" : 
+                        u.nivel_acesso === 'ADMIN' ? "bg-emerald-100 text-emerald-600" :
                         "bg-blue-100 text-blue-600"
                       )}>
                         {u.nivel_acesso}

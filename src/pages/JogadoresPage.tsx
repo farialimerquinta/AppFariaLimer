@@ -213,13 +213,20 @@ export function JogadoresPage() {
 
       if (error) throw error;
 
-      // Log activity
+      // Log activity with details of changes
       if (currentUser) {
+        const changes: any = {};
+        if (editForm.nome !== selectedPlayer.nome) changes.nome = { de: selectedPlayer.nome, para: editForm.nome };
+        if (editForm.email !== selectedPlayer.email) changes.email = { de: selectedPlayer.email, para: editForm.email };
+        if (editForm.celular !== selectedPlayer.celular) changes.celular = { de: selectedPlayer.celular, para: editForm.celular };
+        if (editForm.categoria !== selectedPlayer.categoria) changes.categoria = { de: selectedPlayer.categoria, para: editForm.categoria };
+        
         logActivity(
           currentUser.id,
           currentUser.nome,
           'Alteração de Perfil',
-          `Perfil de ${selectedPlayer.nome} atualizado por ${currentUser.nome}.`
+          `Perfil de ${selectedPlayer.nome} atualizado por ${currentUser.nome}.`,
+          Object.keys(changes).length > 0 ? changes : { info: 'Campos diversos atualizados' }
         );
       }
 

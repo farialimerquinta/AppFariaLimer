@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-export async function logActivity(usuario_id: string, usuario_nome: string, acao: string, detalhes: string) {
+export async function logActivity(usuario_id: string, usuario_nome: string, acao: string, detalhes: string, metadata?: any) {
   try {
     const { error } = await supabase
       .from('logs')
@@ -10,7 +10,7 @@ export async function logActivity(usuario_id: string, usuario_nome: string, acao
           usuario_nome,
           acao,
           detalhes,
-          created_at: new Date().toISOString()
+          metadata: metadata || null
         }
       ]);
 

@@ -15,6 +15,7 @@ import {
   ArrowLeftRight,
   Users
 } from 'lucide-react';
+import { logActivity } from '../services/logService';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabase';
 import { motion } from 'motion/react';
@@ -118,7 +119,18 @@ export function DashboardPage() {
 
   useEffect(() => {
     fetchDashboardData();
-  }, [fetchDashboardData]);
+    
+    // Log access to the system
+    if (user) {
+      const lastAccessLog = sessionStorage.getItem(`access_log_${user.id}`);
+      const today = new Date().toDateString();
+      
+      if (lastAccessLog !== today) {
+        logActivity(user.id, user.nome, 'Acesso ao Sistema', `Usuário ${user.nome} acessou o dashboard.`);
+        sessionStorage.setItem(`access_log_${user.id}`, today);
+      }
+    }
+  }, [fetchDashboardData, user]);
 
   const isDemo = useMemo(() => !!localStorage.getItem('faria_limer_demo_user'), []);
 

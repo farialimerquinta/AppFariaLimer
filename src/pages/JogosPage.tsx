@@ -523,7 +523,12 @@ export function JogosPage() {
               user.id,
               user.nome,
               'Registro de Resultado',
-              `Resultado registrado para o jogo ${selectedJogo.jogador1.nome} vs ${selectedJogo.jogador2.nome}.`
+              `Resultado registrado para o jogo ${selectedJogo.jogador1.nome} vs ${selectedJogo.jogador2.nome}.`,
+              {
+                placar: `${resultData.placar_set1} ${resultData.placar_set2} ${resultData.placar_set3 || ''}`,
+                vencedor: placar.vencedor_id === (selectedJogo.jogador1 as any).id ? selectedJogo.jogador1.nome : selectedJogo.jogador2.nome,
+                is_wo: placar.is_wo
+              }
             );
           }
         } else {

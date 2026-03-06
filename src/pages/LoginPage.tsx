@@ -25,11 +25,22 @@ export function LoginPage() {
       setError(result.error);
       setLoading(false);
     } else {
-      // Log activity
-      const user = (await supabase.auth.getUser()).data.user;
-      const { data: profile } = await supabase.from('perfis').select('nome').eq('id', user?.id).single();
-      if (user && profile) {
-        logActivity(user.id, profile.nome, 'Login', `Usuário ${profile.nome} acessou o sistema.`);
+      try {
+        // Log activity reliably
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from('perfis')
+            .select('nome')
+            .eq('id', user.id)
+            .single();
+            
+          if (profile) {
+            await logActivity(user.id, profile.nome, 'Login', `Usuário ${profile.nome} acessou o sistema.`);
+          }
+        }
+      } catch (logErr) {
+        console.warn('Falha ao registrar log de login:', logErr);
       }
       navigate('/');
     }

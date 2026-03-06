@@ -31,7 +31,7 @@ const menuItems = [
 
 const adminItems = [
   { name: 'Admin Usuários', path: '/admin/usuarios', icon: ShieldAlert },
-  { name: 'Logs de Sistema', path: '/admin/logs', icon: History },
+  { name: 'LOGs', path: '/admin/logs', icon: History },
   { name: 'Reset All Data', path: '/admin/reset', icon: Trash2, variant: 'danger' },
 ];
 
@@ -125,7 +125,9 @@ export function Sidebar() {
             </NavLink>
           ))}
 
-          {(user?.nivel_acesso === 'ADMIN_MASTER' || user?.nivel_acesso === 'ADMIN_TENISTA') && (
+          {(user?.nivel_acesso?.toUpperCase() === 'ADMIN_MASTER' || 
+            user?.nivel_acesso?.toUpperCase() === 'ADMIN_TENISTA' || 
+            user?.nivel_acesso?.toUpperCase() === 'ADMIN') && (
             <div className="pt-6 mt-6 border-t border-slate-800 space-y-1">
               <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2">Administração</p>
               {adminItems.map((item) => (
@@ -167,7 +169,9 @@ export function Sidebar() {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-white truncate">{user?.nome}</p>
               <p className="text-xs text-slate-500 truncate">{user?.email}</p>
-              {(user?.nivel_acesso === 'ADMIN_MASTER' || user?.nivel_acesso === 'ADMIN_TENISTA') && (
+              {(user?.nivel_acesso?.toUpperCase() === 'ADMIN_MASTER' || 
+                user?.nivel_acesso?.toUpperCase() === 'ADMIN_TENISTA' || 
+                user?.nivel_acesso?.toUpperCase() === 'ADMIN') && (
                 <span className="text-[10px] bg-orange-500/20 text-orange-500 px-1.5 py-0.5 rounded font-bold mt-1 inline-block">
                   👑 Admin
                 </span>
