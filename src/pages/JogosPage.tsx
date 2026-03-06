@@ -182,6 +182,10 @@ export function JogosPage() {
       const isWinner1 = jogo.status === 'realizado' && jogo.resultado?.vencedor_id === (jogo.jogador1 as any).id;
       const isWinner2 = jogo.status === 'realizado' && jogo.resultado?.vencedor_id === (jogo.jogador2 as any).id;
 
+      const isAdmin = user?.nivel_acesso?.toUpperCase() === 'ADMIN_MASTER' || 
+                      user?.nivel_acesso?.toUpperCase() === 'ADMIN_TENISTA' ||
+                      user?.nivel_acesso?.toUpperCase() === 'ADMIN';
+
       const handleEdit = () => {
         setSelectedJogo(jogo);
         const res = jogo.resultado;
@@ -395,10 +399,10 @@ export function JogosPage() {
                 <div className="flex gap-2 w-full md:w-auto">
                   <button 
                     onClick={() => setGameToDelete(jogo)}
-                    disabled={(user?.nivel_acesso !== 'ADMIN_MASTER' && user?.nivel_acesso !== 'ADMIN_TENISTA') || deletingId === jogo.id}
+                    disabled={!isAdmin || deletingId === jogo.id}
                     className={cn(
                       "flex-1 md:flex-none px-4 md:px-4 py-2 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2",
-                      (user?.nivel_acesso === 'ADMIN_MASTER' || user?.nivel_acesso === 'ADMIN_TENISTA') 
+                      isAdmin 
                         ? "bg-red-50 text-red-600 border border-red-100 hover:bg-red-100" 
                         : "bg-slate-50 text-slate-400 border border-slate-100 cursor-not-allowed opacity-60"
                     )}
@@ -406,22 +410,28 @@ export function JogosPage() {
                     <Trash2 className="w-3 md:w-3.5 h-3 md:h-3.5" />
                     Apagar
                   </button>
-                  <a 
-                    href="/registrar-resultado"
-                    className="flex-[2] md:flex-none px-4 md:px-6 py-2 bg-[#0F172A] text-white rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-slate-900/20 flex items-center justify-center gap-2"
+                  <button 
+                    onClick={handleEdit}
+                    disabled={!isAdmin}
+                    className={cn(
+                      "flex-[2] md:flex-none px-4 md:px-6 py-2 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2",
+                      isAdmin
+                        ? "bg-[#0F172A] text-white hover:bg-blue-600 shadow-slate-900/20"
+                        : "bg-slate-50 text-slate-400 border border-slate-100 cursor-not-allowed opacity-60"
+                    )}
                   >
                     <Trophy className="w-3 md:w-3.5 h-3 md:h-3.5" />
                     Registrar
-                  </a>
+                  </button>
                 </div>
               ) : (
                 <div className="flex gap-2">
                   <button 
                     onClick={handleEdit}
-                    disabled={user?.nivel_acesso !== 'ADMIN_MASTER' && user?.nivel_acesso !== 'ADMIN_TENISTA'}
+                    disabled={!isAdmin}
                     className={cn(
                       "flex-1 md:flex-none px-4 md:px-4 py-2 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center justify-center gap-2",
-                      (user?.nivel_acesso === 'ADMIN_MASTER' || user?.nivel_acesso === 'ADMIN_TENISTA') 
+                      isAdmin 
                         ? "bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100" 
                         : "bg-slate-50 text-slate-400 border border-slate-100 cursor-not-allowed opacity-60"
                     )}
@@ -440,7 +450,7 @@ export function JogosPage() {
         </motion.div>
       );
     });
-  }, [jogos]);
+  }, [jogos, user]);
 
   const handleSaveEdit = async () => {
     if (!selectedJogo) return;
@@ -476,18 +486,48 @@ export function JogosPage() {
         
         if (updateStatusError) throw updateStatusError;
       } else {
-        const { error: updateError } = await supabase
-          .from('resultados')
-          .update({
-            vencedor_id: placar.vencedor_id,
-            is_wo: placar.is_wo,
-            placar_set1: formatSet(placar.set1_j1, placar.set1_j2, placar.tb1_j1, placar.tb1_j2),
-            placar_set2: formatSet(placar.set2_j1, placar.set2_j2, placar.tb2_j1, placar.tb2_j2),
-            placar_set3: placar.set3_j1 || placar.set3_j2 ? formatSet(placar.set3_j1, placar.set3_j2, placar.tb3_j1, placar.tb3_j2) : null
-          })
-          .eq('jogo_id', selectedJogo.id);
+        const resultData = {
+          jogo_id: selectedJogo.id,
+          vencedor_id: placar.vencedor_id,
+          is_wo: placar.is_wo,
+          placar_set1: formatSet(placar.set1_j1, placar.set1_j2, placar.tb1_j1, placar.tb1_j2),
+          placar_set2: formatSet(placar.set2_j1, placar.set2_j2, placar.tb2_j1, placar.tb2_j2),
+          placar_set3: placar.set3_j1 || placar.set3_j2 ? formatSet(placar.set3_j1, placar.set3_j2, placar.tb3_j1, placar.tb3_j2) : null
+        };
 
-        if (updateError) throw updateError;
+        if (selectedJogo.status === 'agendado') {
+          // New registration
+          const { error: insertError } = await supabase
+            .from('resultados')
+            .insert([resultData]);
+          
+          if (insertError) throw insertError;
+
+          const { error: statusError } = await supabase
+            .from('jogos')
+            .update({ status: 'realizado' })
+            .eq('id', selectedJogo.id);
+          
+          if (statusError) throw statusError;
+
+          // Log activity for new registration
+          if (user) {
+            logActivity(
+              user.id,
+              user.nome,
+              'Registro de Resultado',
+              `Resultado registrado para o jogo ${selectedJogo.jogador1.nome} vs ${selectedJogo.jogador2.nome}.`
+            );
+          }
+        } else {
+          // Update existing
+          const { error: updateError } = await supabase
+            .from('resultados')
+            .update(resultData)
+            .eq('jogo_id', selectedJogo.id);
+
+          if (updateError) throw updateError;
+        }
       }
 
       // REPROCESS EVERYTHING
@@ -594,7 +634,9 @@ export function JogosPage() {
                     <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
                     <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest">{selectedJogo.categoria_evento}</span>
                   </div>
-                  <h2 className="text-lg md:text-2xl font-black text-[#0F172A]">Editar Placar</h2>
+                  <h2 className="text-lg md:text-2xl font-black text-[#0F172A]">
+                    {selectedJogo.status === 'agendado' ? 'Registrar Placar' : 'Editar Placar'}
+                  </h2>
                 </div>
                 <button onClick={() => setShowEditModal(false)} className="p-2 md:p-3 hover:bg-white rounded-xl md:rounded-2xl transition-all shadow-sm">
                   <X className="w-5 md:w-6 h-5 md:h-6 text-slate-400" />
@@ -814,7 +856,7 @@ export function JogosPage() {
                 {success && (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-6 p-4 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center gap-3 text-xs font-bold">
                     <CheckCircle2 className="w-5 h-5" />
-                    Resultado atualizado com sucesso!
+                    {selectedJogo.status === 'agendado' ? 'Resultado registrado com sucesso!' : 'Resultado atualizado com sucesso!'}
                   </motion.div>
                 )}
               </div>
@@ -832,7 +874,7 @@ export function JogosPage() {
                   className="w-full sm:w-auto px-8 md:px-12 py-3 md:py-4 bg-[#0F172A] text-white font-black rounded-xl md:rounded-2xl shadow-xl shadow-slate-900/20 hover:bg-blue-600 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 md:gap-3 text-[10px] md:text-xs uppercase tracking-widest"
                 >
                   {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Salvar Alterações
+                  {selectedJogo.status === 'agendado' ? 'Finalizar Registro' : 'Salvar Alterações'}
                 </button>
               </div>
             </motion.div>
