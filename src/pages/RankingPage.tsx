@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { cn } from '../utils';
 import { motion, AnimatePresence } from 'motion/react';
+import { PlayerStatsModal } from '../components/PlayerStatsModal';
 
 interface Player {
   id: string;
@@ -44,6 +45,8 @@ export function RankingPage() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string | null>(null);
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null);
+  const [selectedPlayerIdForStats, setSelectedPlayerIdForStats] = useState<string | null>(null);
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
 
   const fetchRanking = useCallback(async () => {
     setLoading(true);
@@ -85,6 +88,11 @@ export function RankingPage() {
 
   const podium = useMemo(() => filteredPlayers.slice(0, 3), [filteredPlayers]);
 
+  const handlePlayerClick = (playerId: string) => {
+    setSelectedPlayerIdForStats(playerId);
+    setIsStatsModalOpen(true);
+  };
+
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
       {/* Mobile Back to Home button */}
@@ -99,7 +107,7 @@ export function RankingPage() {
       </div>
 
       {/* Header Banner */}
-      <div className="relative bg-[#0F172A] rounded-[32px] md:rounded-[40px] p-6 md:p-10 mb-8 md:mb-10 text-center overflow-hidden shadow-2xl border border-white/5">
+      <div className="relative bg-[#0F172A] rounded-[32px] md:rounded-[40px] p-4 md:p-8 mb-4 md:mb-6 text-center overflow-hidden shadow-2xl border border-white/5">
         <div className="absolute inset-0 z-0">
           <img 
             src="https://images.unsplash.com/photo-1595435066359-62f32ff9d51d?q=80&w=1920&auto=format&fit=crop" 
@@ -111,7 +119,7 @@ export function RankingPage() {
         </div>
 
         <div className="relative z-10">
-          <div className="flex flex-col items-center group cursor-pointer mb-4 md:mb-6">
+          <div className="flex flex-col items-center group cursor-pointer mb-3 md:mb-4">
             <div className="relative pr-4">
               <span className="text-4xl md:text-6xl font-black italic tracking-tighter leading-none bg-gradient-to-b from-yellow-200 via-yellow-500 to-yellow-700 bg-clip-text text-transparent drop-shadow-2xl">
                 ATP
@@ -124,10 +132,10 @@ export function RankingPage() {
               </span>
             </div>
           </div>
-          <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-white mb-2 italic tracking-tight uppercase">
+          <h1 className="text-xl md:text-4xl lg:text-5xl font-black text-white mb-1 italic tracking-tight uppercase">
             RANKING FARIA LIMER <span className="text-yellow-500">|</span> QUINTA
           </h1>
-          <p className="text-slate-300 text-xs md:text-lg font-medium tracking-wide">
+          <p className="text-slate-300 text-[10px] md:text-base font-medium tracking-wide">
             Onde os campeões se encontram toda quinta-feira!
           </p>
         </div>
@@ -263,9 +271,15 @@ export function RankingPage() {
                           <td className="px-6 py-4">
                             <div 
                               className="flex items-center gap-3 group cursor-pointer"
-                              onClick={() => navigate(`/jogadores?id=${player.id}`)}
+                              onClick={() => handlePlayerClick(player.id)}
                             >
-                              <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center border-2 border-slate-100 overflow-hidden transition-transform duration-300 group-hover:scale-125 group-hover:z-10 group-hover:shadow-lg">
+                              <div 
+                                className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center border-2 border-slate-100 overflow-hidden transition-transform duration-300 hover:scale-125 hover:z-10 hover:shadow-lg"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/jogadores?id=${player.id}`);
+                                }}
+                              >
                                 {player.avatar_url ? (
                                   <img 
                                     src={player.avatar_url} 
@@ -333,7 +347,7 @@ export function RankingPage() {
                       <div className="flex items-center justify-between">
                         <div 
                           className="flex items-center gap-3 group cursor-pointer"
-                          onClick={() => navigate(`/jogadores?id=${player.id}`)}
+                          onClick={() => handlePlayerClick(player.id)}
                         >
                           <div className={cn(
                             "w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black",
@@ -344,7 +358,13 @@ export function RankingPage() {
                           )}>
                             {index + 1}
                           </div>
-                          <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center border-2 border-slate-100 overflow-hidden transition-transform duration-300 group-hover:scale-125 group-hover:z-10 group-hover:shadow-lg">
+                          <div 
+                            className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center border-2 border-slate-100 overflow-hidden transition-transform duration-300 hover:scale-125 hover:z-10 hover:shadow-lg"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/jogadores?id=${player.id}`);
+                            }}
+                          >
                             {player.avatar_url ? (
                               <img 
                                 src={player.avatar_url} 
@@ -414,6 +434,12 @@ export function RankingPage() {
           </div>
         )}
       </div>
+
+      <PlayerStatsModal 
+        playerId={selectedPlayerIdForStats}
+        isOpen={isStatsModalOpen}
+        onClose={() => setIsStatsModalOpen(false)}
+      />
     </div>
   );
 }

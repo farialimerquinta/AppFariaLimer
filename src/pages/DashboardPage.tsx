@@ -22,6 +22,7 @@ import { motion } from 'motion/react';
 import { cn } from '../utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { PlayerStatsModal } from '../components/PlayerStatsModal';
 
 interface Jogo {
   id: string;
@@ -48,6 +49,8 @@ export function DashboardPage() {
 
   const [jogosFaltam, setJogosFaltam] = useState(7);
   const [userRank, setUserRank] = useState<number | string>('-');
+  const [selectedPlayerIdForStats, setSelectedPlayerIdForStats] = useState<string | null>(null);
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
   const [userStats, setUserStats] = useState({
     pontos: 0,
     vitorias: 0,
@@ -173,11 +176,11 @@ export function DashboardPage() {
   const isDemo = useMemo(() => !!localStorage.getItem('faria_limer_demo_user'), []);
 
   const stats = useMemo(() => [
-    { label: 'SUA POSIÇÃO', value: typeof userRank === 'number' ? `#${userRank}` : userRank, sub: userStats.categoria, icon: Trophy, color: 'bg-red-500' },
+    { label: 'SUA POSIÇÃO', value: typeof userRank === 'number' ? `#${userRank}` : userRank, sub: userStats.categoria, icon: Trophy, color: 'bg-red-500', onClick: () => { setSelectedPlayerIdForStats(user?.id || null); setIsStatsModalOpen(true); } },
     { label: 'SEUS PONTOS', value: userStats.pontos, sub: '', icon: TrendingUp, color: 'bg-blue-500' },
     { label: 'W/L', value: `${userStats.vitorias}-${userStats.derrotas}`, sub: 'Aproveitamento', icon: CheckCircle2, color: 'bg-emerald-500' },
     { label: 'JOGOS FALTAM', value: jogosFaltam.toString(), sub: 'Para realizar', icon: Clock, color: 'bg-orange-500' },
-  ], [userRank, userStats, jogosFaltam]);
+  ], [userRank, userStats, jogosFaltam, user?.id]);
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
@@ -193,7 +196,7 @@ export function DashboardPage() {
       </div>
 
       {/* Header Banner */}
-      <div className="relative bg-[#0F172A] rounded-[24px] md:rounded-[40px] p-4 md:p-12 mb-6 md:mb-10 text-center overflow-hidden shadow-2xl border border-white/5">
+      <div className="relative bg-[#0F172A] rounded-[24px] md:rounded-[40px] p-4 md:p-8 mb-4 md:mb-6 text-center overflow-hidden shadow-2xl border border-white/5">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
           <img 
@@ -206,15 +209,15 @@ export function DashboardPage() {
         </div>
 
         <div className="relative z-10">
-          <div className="flex flex-col items-center group cursor-pointer mb-4 md:mb-8">
+          <div className="flex flex-col items-center group cursor-pointer mb-3 md:mb-4">
             <div className="relative pr-3 md:pr-4">
-              <span className="text-4xl md:text-7xl font-black italic tracking-tighter leading-none bg-gradient-to-b from-yellow-200 via-yellow-500 to-yellow-700 bg-clip-text text-transparent drop-shadow-2xl">
+              <span className="text-4xl md:text-6xl font-black italic tracking-tighter leading-none bg-gradient-to-b from-yellow-200 via-yellow-500 to-yellow-700 bg-clip-text text-transparent drop-shadow-2xl transition-all">
                 ATP
               </span>
-              <div className="absolute top-1/2 left-0 w-[calc(100%-0.75rem)] h-[1.5px] md:h-[3px] bg-white -rotate-12 transform -translate-y-1/2 opacity-40"></div>
+              <div className="absolute top-1/2 left-0 w-[calc(100%-0.75rem)] h-[1.5px] md:h-[2px] bg-white -rotate-12 transform -translate-y-1/2 opacity-40"></div>
             </div>
             <div className="mt-0.5 flex flex-col items-center">
-              <span className="text-[10px] md:text-xl font-black tracking-[0.3em] md:tracking-[0.4em] bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent uppercase leading-none">
+              <span className="text-[10px] md:text-lg font-black tracking-[0.3em] md:tracking-[0.4em] bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent uppercase leading-none">
                 FARIA LIMER
               </span>
             </div>
@@ -222,15 +225,15 @@ export function DashboardPage() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 md:px-4 md:py-1.5 bg-yellow-500/10 border border-yellow-500/20 rounded-full mb-3 md:mb-6"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 md:px-4 md:py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-full mb-2 md:mb-4"
           >
-            <div className="w-1 h-1 md:w-2 md:h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-            <span className="text-[7px] md:text-[10px] font-black text-yellow-500 uppercase tracking-[0.15em] md:tracking-[0.2em]">Temporada 2026</span>
+            <div className="w-1 h-1 md:w-1.5 md:h-1.5 bg-yellow-500 rounded-full animate-pulse"></div>
+            <span className="text-[7px] md:text-[9px] font-black text-yellow-500 uppercase tracking-[0.15em] md:tracking-[0.2em]">Temporada 2026</span>
           </motion.div>
-          <h1 className="text-xl md:text-5xl lg:text-6xl font-black text-white mb-2 md:mb-4 tracking-tighter uppercase italic leading-tight">
+          <h1 className="text-xl md:text-4xl lg:text-5xl font-black text-white mb-1 md:mb-2 tracking-tighter uppercase italic leading-tight">
             RANKING FARIA LIMER <span className="text-yellow-500">|</span> QUINTA
           </h1>
-          <p className="text-slate-300 text-xs md:text-xl font-medium tracking-wide">
+          <p className="text-slate-300 text-[10px] md:text-base font-medium tracking-wide">
             Onde os campeões se encontram toda quinta-feira!
           </p>
         </div>
@@ -275,7 +278,11 @@ export function DashboardPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 flex flex-col"
+            className={cn(
+              "bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl shadow-sm border border-slate-100 flex flex-col transition-all",
+              stat.onClick && "cursor-pointer hover:shadow-md hover:scale-[1.02] active:scale-95"
+            )}
+            onClick={stat.onClick}
           >
             <div className={cn("w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center mb-2 md:mb-4", stat.color)}>
               <stat.icon className="text-white w-4 h-4 md:w-6 md:h-6" />
@@ -312,18 +319,34 @@ export function DashboardPage() {
                     <div className="flex items-center gap-3">
                       <div className="flex -space-x-2">
                         <img 
-                          src={jogo.jogador1.avatar_url || `https://ui-avatars.com/api/?name=${jogo.jogador1.nome}`} 
-                          className="w-8 h-8 rounded-full border-2 border-white object-cover"
+                          src={(jogo.jogador1 as any)?.avatar_url || `https://ui-avatars.com/api/?name=${jogo.jogador1?.nome || ''}`} 
+                          className="w-8 h-8 rounded-full border-2 border-white object-cover cursor-pointer hover:scale-110 transition-transform"
                           alt=""
+                          onClick={() => { if (jogo.jogador1) { setSelectedPlayerIdForStats((jogo.jogador1 as any).id); setIsStatsModalOpen(true); } }}
                         />
                         <img 
-                          src={jogo.jogador2.avatar_url || `https://ui-avatars.com/api/?name=${jogo.jogador2.nome}`} 
-                          className="w-8 h-8 rounded-full border-2 border-white object-cover"
+                          src={(jogo.jogador2 as any)?.avatar_url || `https://ui-avatars.com/api/?name=${jogo.jogador2?.nome || ''}`} 
+                          className="w-8 h-8 rounded-full border-2 border-white object-cover cursor-pointer hover:scale-110 transition-transform"
                           alt=""
+                          onClick={() => { if (jogo.jogador2) { setSelectedPlayerIdForStats((jogo.jogador2 as any).id); setIsStatsModalOpen(true); } }}
                         />
                       </div>
                       <div>
-                        <p className="text-xs font-black text-slate-900">{jogo.jogador1.nome.split(' ')[0]} vs {jogo.jogador2.nome.split(' ')[0]}</p>
+                        <p className="text-xs font-black text-slate-900">
+                          <span 
+                            className="cursor-pointer hover:text-blue-600 transition-colors"
+                            onClick={() => { if (jogo.jogador1) { setSelectedPlayerIdForStats((jogo.jogador1 as any).id); setIsStatsModalOpen(true); } }}
+                          >
+                            {jogo.jogador1?.nome?.split(' ')[0] || '...'}
+                          </span>
+                          {" vs "}
+                          <span 
+                            className="cursor-pointer hover:text-blue-600 transition-colors"
+                            onClick={() => { if (jogo.jogador2) { setSelectedPlayerIdForStats((jogo.jogador2 as any).id); setIsStatsModalOpen(true); } }}
+                          >
+                            {jogo.jogador2?.nome?.split(' ')[0] || '...'}
+                          </span>
+                        </p>
                         <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest">{jogo.categoria_evento}</p>
                       </div>
                     </div>
@@ -365,7 +388,19 @@ export function DashboardPage() {
                       </div>
                       <div>
                         <p className="text-xs font-black text-slate-900">
-                          {jogo.jogador1.nome.split(' ')[0]} vs {jogo.jogador2.nome.split(' ')[0]}
+                          <span 
+                            className="cursor-pointer hover:text-blue-600 transition-colors"
+                            onClick={() => { if (jogo.jogador1) { setSelectedPlayerIdForStats((jogo.jogador1 as any).id); setIsStatsModalOpen(true); } }}
+                          >
+                            {jogo.jogador1?.nome?.split(' ')[0] || '...'}
+                          </span>
+                          {" vs "}
+                          <span 
+                            className="cursor-pointer hover:text-blue-600 transition-colors"
+                            onClick={() => { if (jogo.jogador2) { setSelectedPlayerIdForStats((jogo.jogador2 as any).id); setIsStatsModalOpen(true); } }}
+                          >
+                            {jogo.jogador2?.nome?.split(' ')[0] || '...'}
+                          </span>
                         </p>
                         <p className="text-[10px] text-emerald-600 font-black uppercase tracking-widest">
                           {Array.isArray(jogo.resultado) 
@@ -386,6 +421,12 @@ export function DashboardPage() {
           </div>
         </div>
       </div>
+
+      <PlayerStatsModal 
+        playerId={selectedPlayerIdForStats}
+        isOpen={isStatsModalOpen}
+        onClose={() => setIsStatsModalOpen(false)}
+      />
     </div>
   );
 }

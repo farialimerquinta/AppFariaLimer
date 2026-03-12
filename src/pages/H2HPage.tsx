@@ -6,6 +6,7 @@ import { cn } from '../utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { PlayerStatsModal } from '../components/PlayerStatsModal';
 
 interface Player {
   id: string;
@@ -48,6 +49,10 @@ export function H2HPage() {
   const [player2Id, setPlayer2Id] = useState<string>('');
   const [pastMatches, setPastMatches] = useState<Jogo[]>([]);
   const [fetchingMatches, setFetchingMatches] = useState(false);
+
+  // Player Stats Modal State
+  const [selectedPlayerIdForStats, setSelectedPlayerIdForStats] = useState<string | null>(null);
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
 
   // Search states
   const [search1, setSearch1] = useState('');
@@ -343,10 +348,18 @@ export function H2HPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-8 relative z-10">
                 <div className="text-center md:text-right">
-                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-yellow-500 overflow-hidden mx-auto md:ml-auto md:mr-0 mb-4 shadow-2xl">
+                  <div 
+                    className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-yellow-500 overflow-hidden mx-auto md:ml-auto md:mr-0 mb-4 shadow-2xl cursor-pointer hover:scale-105 transition-transform"
+                    onClick={() => { setSelectedPlayerIdForStats(p1.id); setIsStatsModalOpen(true); }}
+                  >
                     <img src={p1.avatar_url || `https://ui-avatars.com/api/?name=${p1.nome}`} alt="" className="w-full h-full object-cover" />
                   </div>
-                  <h2 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter">{p1.nome}</h2>
+                  <h2 
+                    className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter cursor-pointer hover:text-yellow-500 transition-colors"
+                    onClick={() => { setSelectedPlayerIdForStats(p1.id); setIsStatsModalOpen(true); }}
+                  >
+                    {p1.nome}
+                  </h2>
                   <p className="text-yellow-500 font-black text-sm uppercase tracking-widest mt-2">{p1.categoria}</p>
                 </div>
 
@@ -362,10 +375,18 @@ export function H2HPage() {
                 </div>
 
                 <div className="text-center md:text-left">
-                  <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-yellow-500 overflow-hidden mx-auto md:mr-auto md:ml-0 mb-4 shadow-2xl">
+                  <div 
+                    className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-yellow-500 overflow-hidden mx-auto md:mr-auto md:ml-0 mb-4 shadow-2xl cursor-pointer hover:scale-105 transition-transform"
+                    onClick={() => { setSelectedPlayerIdForStats(p2.id); setIsStatsModalOpen(true); }}
+                  >
                     <img src={p2.avatar_url || `https://ui-avatars.com/api/?name=${p2.nome}`} alt="" className="w-full h-full object-cover" />
                   </div>
-                  <h2 className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter">{p2.nome}</h2>
+                  <h2 
+                    className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter cursor-pointer hover:text-yellow-500 transition-colors"
+                    onClick={() => { setSelectedPlayerIdForStats(p2.id); setIsStatsModalOpen(true); }}
+                  >
+                    {p2.nome}
+                  </h2>
                   <p className="text-yellow-500 font-black text-sm uppercase tracking-widest mt-2">{p2.categoria}</p>
                 </div>
               </div>
@@ -482,6 +503,12 @@ export function H2HPage() {
           </div>
         )}
       </div>
+
+      <PlayerStatsModal 
+        playerId={selectedPlayerIdForStats}
+        isOpen={isStatsModalOpen}
+        onClose={() => setIsStatsModalOpen(false)}
+      />
     </div>
   );
 }

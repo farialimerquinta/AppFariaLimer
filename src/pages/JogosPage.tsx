@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { PlayerStatsModal } from '../components/PlayerStatsModal';
 
 interface Jogo {
   id: string;
@@ -41,6 +42,8 @@ export function JogosPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedPlayerIdForStats, setSelectedPlayerIdForStats] = useState<string | null>(null);
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
 
   const [placar, setPlacar] = useState({
     set1_j1: 0,
@@ -269,12 +272,15 @@ export function JogosPage() {
                 isWinner1 ? "bg-blue-50/50" : ""
               )}>
                 <div className="flex items-center gap-3 md:gap-4">
-                  <div className={cn(
-                    "w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border-2 shadow-sm group-hover/p1:scale-110 transition-transform",
-                    isWinner1 ? "border-blue-400" : "border-slate-100"
-                  )}>
+                  <div 
+                    className={cn(
+                      "w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border-2 shadow-sm cursor-pointer hover:scale-110 transition-transform",
+                      isWinner1 ? "border-blue-400" : "border-slate-100"
+                    )}
+                    onClick={() => { if (jogo.jogador1) { setSelectedPlayerIdForStats((jogo.jogador1 as any).id); setIsStatsModalOpen(true); } }}
+                  >
                     <img 
-                      src={(jogo.jogador1 as any).avatar_url || `https://ui-avatars.com/api/?name=${(jogo.jogador1 as any).nome}`} 
+                      src={(jogo.jogador1 as any)?.avatar_url || `https://ui-avatars.com/api/?name=${(jogo.jogador1 as any)?.nome || ''}`} 
                       alt="" 
                       className="w-full h-full object-cover" 
                       referrerPolicy="no-referrer" 
@@ -283,11 +289,14 @@ export function JogosPage() {
                   <div className="flex items-center gap-2 md:gap-3">
                     <img src="https://flagcdn.com/w40/br.png" alt="BR" className="w-5 h-3.5 md:w-6 md:h-4 object-cover rounded-sm shadow-sm" />
                     <div className="flex flex-col">
-                      <span className={cn(
-                        "text-sm md:text-lg font-black tracking-tight",
-                        isWinner1 ? "text-blue-600" : "text-[#0F172A]"
-                      )}>
-                        {(jogo.jogador1 as any).nome}
+                      <span 
+                        className={cn(
+                          "text-sm md:text-lg font-black tracking-tight cursor-pointer hover:text-blue-600 transition-colors",
+                          isWinner1 ? "text-blue-600" : "text-[#0F172A]"
+                        )}
+                        onClick={() => { if (jogo.jogador1) { setSelectedPlayerIdForStats((jogo.jogador1 as any).id); setIsStatsModalOpen(true); } }}
+                      >
+                        {(jogo.jogador1 as any)?.nome || '...'}
                       </span>
                       {isWinner1 && (
                         <span className="text-[7px] md:text-[8px] font-black text-blue-500 uppercase tracking-widest">Vencedor</span>
@@ -330,12 +339,15 @@ export function JogosPage() {
                 isWinner2 ? "bg-blue-50/50" : ""
               )}>
                 <div className="flex items-center gap-3 md:gap-4">
-                  <div className={cn(
-                    "w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border-2 shadow-sm group-hover/p2:scale-110 transition-transform",
-                    isWinner2 ? "border-blue-400" : "border-slate-100"
-                  )}>
+                  <div 
+                    className={cn(
+                      "w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden border-2 shadow-sm cursor-pointer hover:scale-110 transition-transform",
+                      isWinner2 ? "border-blue-400" : "border-slate-100"
+                    )}
+                    onClick={() => { if (jogo.jogador2) { setSelectedPlayerIdForStats((jogo.jogador2 as any).id); setIsStatsModalOpen(true); } }}
+                  >
                     <img 
-                      src={(jogo.jogador2 as any).avatar_url || `https://ui-avatars.com/api/?name=${(jogo.jogador2 as any).nome}`} 
+                      src={(jogo.jogador2 as any)?.avatar_url || `https://ui-avatars.com/api/?name=${(jogo.jogador2 as any)?.nome || ''}`} 
                       alt="" 
                       className="w-full h-full object-cover" 
                       referrerPolicy="no-referrer" 
@@ -344,11 +356,14 @@ export function JogosPage() {
                   <div className="flex items-center gap-2 md:gap-3">
                     <img src="https://flagcdn.com/w40/br.png" alt="BR" className="w-5 h-3.5 md:w-6 md:h-4 object-cover rounded-sm shadow-sm" />
                     <div className="flex flex-col">
-                      <span className={cn(
-                        "text-sm md:text-lg font-black tracking-tight",
-                        isWinner2 ? "text-blue-600" : "text-[#0F172A]"
-                      )}>
-                        {(jogo.jogador2 as any).nome}
+                      <span 
+                        className={cn(
+                          "text-sm md:text-lg font-black tracking-tight cursor-pointer hover:text-blue-600 transition-colors",
+                          isWinner2 ? "text-blue-600" : "text-[#0F172A]"
+                        )}
+                        onClick={() => { if (jogo.jogador2) { setSelectedPlayerIdForStats((jogo.jogador2 as any).id); setIsStatsModalOpen(true); } }}
+                      >
+                        {(jogo.jogador2 as any)?.nome || '...'}
                       </span>
                       {isWinner2 && (
                         <span className="text-[7px] md:text-[8px] font-black text-blue-500 uppercase tracking-widest">Vencedor</span>
@@ -964,6 +979,12 @@ export function JogosPage() {
           {renderedJogos}
         </div>
       )}
+
+      <PlayerStatsModal 
+        playerId={selectedPlayerIdForStats}
+        isOpen={isStatsModalOpen}
+        onClose={() => setIsStatsModalOpen(false)}
+      />
     </div>
   );
 }

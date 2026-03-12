@@ -32,6 +32,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../utils';
 
+import { PlayerStatsModal } from '../components/PlayerStatsModal';
+
 interface Player {
   id: string;
   nome: string;
@@ -82,6 +84,10 @@ export function JogadoresPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordSubmitting, setPasswordSubmitting] = useState(false);
+
+  // Player Stats Modal State
+  const [selectedPlayerIdForStats, setSelectedPlayerIdForStats] = useState<string | null>(null);
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
   
   const isAdmin = currentUser?.nivel_acesso?.toUpperCase() === 'ADMIN_MASTER' || 
                   currentUser?.nivel_acesso?.toUpperCase() === 'ADMIN_TENISTA' ||
@@ -513,7 +519,12 @@ export function JogadoresPage() {
 
               <div className="pt-12 p-6">
                 <div className="mb-4">
-                  <h3 className="text-lg font-black text-slate-900 truncate">{player.nome}</h3>
+                  <h3 
+                    className="text-lg font-black text-slate-900 truncate cursor-pointer hover:text-blue-600 transition-colors"
+                    onClick={() => { setSelectedPlayerIdForStats(player.id); setIsStatsModalOpen(true); }}
+                  >
+                    {player.nome}
+                  </h3>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mb-6">
@@ -986,6 +997,12 @@ export function JogadoresPage() {
           </div>
         )}
       </AnimatePresence>
+
+      <PlayerStatsModal 
+        playerId={selectedPlayerIdForStats}
+        isOpen={isStatsModalOpen}
+        onClose={() => setIsStatsModalOpen(false)}
+      />
     </div>
   );
 }

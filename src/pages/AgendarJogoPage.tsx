@@ -205,7 +205,7 @@ export function AgendarJogoPage() {
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto bg-slate-50 min-h-screen">
       {/* Header Banner */}
-      <div className="relative bg-[#0F172A] rounded-[32px] md:rounded-[40px] p-6 md:p-8 mb-8 md:mb-10 text-center overflow-hidden shadow-2xl border border-white/5">
+      <div className="relative bg-[#0F172A] rounded-[32px] md:rounded-[40px] p-4 md:p-6 mb-4 md:mb-6 text-center overflow-hidden shadow-2xl border border-white/5">
         <div className="absolute inset-0 z-0">
           <img 
             src="https://images.unsplash.com/photo-1595435066359-62f32ff9d51d?q=80&w=1920&auto=format&fit=crop" 
@@ -217,7 +217,7 @@ export function AgendarJogoPage() {
         </div>
 
         <div className="relative z-10">
-          <div className="flex flex-col items-center group cursor-pointer mb-4">
+          <div className="flex flex-col items-center group cursor-pointer mb-3">
             <div className="relative pr-4">
               <span className="text-4xl md:text-5xl font-black italic tracking-tighter leading-none bg-gradient-to-b from-yellow-200 via-yellow-500 to-yellow-700 bg-clip-text text-transparent drop-shadow-2xl">
                 ATP
@@ -230,10 +230,10 @@ export function AgendarJogoPage() {
               </span>
             </div>
           </div>
-          <h1 className="text-2xl md:text-4xl font-black text-white mb-2 italic tracking-tight uppercase">
+          <h1 className="text-xl md:text-3xl font-black text-white mb-1 italic tracking-tight uppercase">
             RANKING FARIA LIMER <span className="text-yellow-500">|</span> QUINTA
           </h1>
-          <p className="text-slate-300 text-sm md:text-base font-medium">
+          <p className="text-slate-300 text-xs md:text-sm font-medium">
             Onde os campeões se encontram toda quinta-feira!
           </p>
         </div>
