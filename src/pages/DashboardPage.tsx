@@ -46,11 +46,60 @@ export function DashboardPage() {
   const [resultadosRecentes, setResultadosRecentes] = useState<Jogo[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [jogosFaltam, setJogosFaltam] = useState(0);
+  const [jogosFaltam, setJogosFaltam] = useState(7);
+  const [userRank, setUserRank] = useState<number | string>('-');
+  const [userStats, setUserStats] = useState({
+    pontos: 0,
+    vitorias: 0,
+    derrotas: 0,
+    categoria: ''
+  });
 
   const fetchDashboardData = useCallback(async () => {
+    if (!user) return;
     setLoading(true);
     try {
+      // Fetch latest user profile
+      const { data: profile } = await supabase
+        .from('perfis')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (profile) {
+        setUserStats({
+          pontos: profile.pontos || 0,
+          vitorias: profile.vitorias || 0,
+          derrotas: profile.derrotas || 0,
+          categoria: profile.categoria || 'Challenger'
+        });
+        
+        // Calculate games remaining: 7 - realizados
+        const realizados = profile.jogos_realizados || 0;
+        setJogosFaltam(Math.max(0, 7 - realizados));
+      }
+
+      // Fetch all active players for ranking calculation
+      const { data: allPlayers } = await supabase
+        .from('perfis')
+        .select('id, nome, pontos, vitorias, saldo_games, ativo, nivel_acesso')
+        .eq('ativo', true)
+        .order('pontos', { ascending: false })
+        .order('vitorias', { ascending: false })
+        .order('saldo_games', { ascending: false });
+
+      if (allPlayers) {
+        // Filter out admins like in RankingPage
+        const filteredPlayers = (allPlayers as any[]).filter(p => 
+          p.nivel_acesso?.toUpperCase() !== 'ADMIN_MASTER' && p.nome !== 'DJOKO MASTER'
+        );
+        
+        const rankIndex = filteredPlayers.findIndex(p => p.id === user.id);
+        if (rankIndex !== -1) {
+          setUserRank(rankIndex + 1);
+        }
+      }
+
       // Fetch upcoming games
       const { data: upcoming } = await supabase
         .from('jogos')
@@ -82,17 +131,6 @@ export function DashboardPage() {
         .eq('status', 'realizado')
         .order('data_jogo', { ascending: false })
         .limit(3);
-
-      // Fetch count of upcoming games for the current user
-      if (user) {
-        const { count } = await supabase
-          .from('jogos')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'agendado')
-          .or(`jogador1_id.eq.${user.id},jogador2_id.eq.${user.id}`);
-        
-        setJogosFaltam(count || 0);
-      }
 
       if (upcoming) {
         const filteredUpcoming = (upcoming as any[]).filter(j => 
@@ -135,11 +173,11 @@ export function DashboardPage() {
   const isDemo = useMemo(() => !!localStorage.getItem('faria_limer_demo_user'), []);
 
   const stats = useMemo(() => [
-    { label: 'SUA POSIÇÃO', value: '#1', sub: user?.categoria || 'Challenger', icon: Trophy, color: 'bg-red-500' },
-    { label: 'SEUS PONTOS', value: user?.pontos || 0, sub: '', icon: TrendingUp, color: 'bg-blue-500' },
-    { label: 'W/L', value: `${user?.vitorias || 0}-${user?.derrotas || 0}`, sub: 'Aproveitamento', icon: CheckCircle2, color: 'bg-emerald-500' },
+    { label: 'SUA POSIÇÃO', value: typeof userRank === 'number' ? `#${userRank}` : userRank, sub: userStats.categoria, icon: Trophy, color: 'bg-red-500' },
+    { label: 'SEUS PONTOS', value: userStats.pontos, sub: '', icon: TrendingUp, color: 'bg-blue-500' },
+    { label: 'W/L', value: `${userStats.vitorias}-${userStats.derrotas}`, sub: 'Aproveitamento', icon: CheckCircle2, color: 'bg-emerald-500' },
     { label: 'JOGOS FALTAM', value: jogosFaltam.toString(), sub: 'Para realizar', icon: Clock, color: 'bg-orange-500' },
-  ], [user, jogosFaltam]);
+  ], [userRank, userStats, jogosFaltam]);
 
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto">
