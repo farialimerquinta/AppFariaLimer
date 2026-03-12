@@ -50,6 +50,7 @@ export function AdminLogsPage() {
       let query = supabase
         .from('logs')
         .select('*', { count: 'exact' })
+        .neq('usuario_nome', 'DJOKO MASTER')
         .order('created_at', { ascending: false })
         .range((page - 1) * pageSize, page * pageSize - 1);
 

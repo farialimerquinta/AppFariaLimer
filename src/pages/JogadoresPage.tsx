@@ -25,7 +25,7 @@ import {
   Key,
   LayoutDashboard
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { logActivity } from '../services/logService';
 import { useAuth } from '../contexts/AuthContext';
@@ -44,11 +44,6 @@ interface Player {
   avatar_url: string | null;
   nivel_acesso: string;
   celular?: string;
-  idade?: number;
-  data_nascimento?: string;
-  peso?: number;
-  forehand?: 'destro' | 'canhoto';
-  backhand?: 'uma mao' | 'duas maos';
   ativo: boolean;
 }
 
@@ -56,6 +51,8 @@ const CATEGORIES = ['TODOS', 'Grand Slam', 'ATP 1000', 'ATP 500', 'ATP 250', 'Ch
 
 export function JogadoresPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const playerId = searchParams.get('id');
   const { user: currentUser } = useAuth();
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
@@ -112,6 +109,15 @@ export function JogadoresPage() {
   useEffect(() => {
     fetchPlayers();
   }, [fetchPlayers]);
+
+  useEffect(() => {
+    if (playerId && players.length > 0) {
+      const player = players.find(p => p.id === playerId);
+      if (player) {
+        handleOpenProfile(player);
+      }
+    }
+  }, [playerId, players]);
 
   const filteredPlayers = useMemo(() => {
     return players.filter(p => {
@@ -202,11 +208,7 @@ export function JogadoresPage() {
           nome: editForm.nome,
           email: editForm.email,
           celular: editForm.celular,
-          idade: editForm.idade,
-          data_nascimento: editForm.data_nascimento,
-          peso: editForm.peso,
-          forehand: editForm.forehand,
-          backhand: editForm.backhand,
+          categoria: editForm.categoria,
           avatar_url: editForm.avatar_url
         })
         .eq('id', selectedPlayer.id);
@@ -269,11 +271,6 @@ export function JogadoresPage() {
           vitorias: 0,
           derrotas: 0,
           celular: newPlayerForm.celular,
-          idade: newPlayerForm.idade,
-          data_nascimento: newPlayerForm.data_nascimento,
-          peso: newPlayerForm.peso,
-          forehand: newPlayerForm.forehand,
-          backhand: newPlayerForm.backhand,
           ativo: true
         }]);
 
@@ -517,10 +514,6 @@ export function JogadoresPage() {
               <div className="pt-12 p-6">
                 <div className="mb-4">
                   <h3 className="text-lg font-black text-slate-900 truncate">{player.nome}</h3>
-                  <div className="flex items-center gap-1.5 text-slate-400 mt-1">
-                    <Mail className="w-3 h-3" />
-                    <span className="text-[10px] font-medium truncate">{player.email}</span>
-                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mb-6">
@@ -761,85 +754,27 @@ export function JogadoresPage() {
                         />
                       </div>
 
-                      {/* Idade */}
+                      {/* Categoria (Classificação) */}
                       <div className="space-y-2">
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                          <CalendarIcon className="w-3 h-3" /> Idade
+                          <Award className="w-3 h-3" /> Classificação
                         </label>
-                        <input 
-                          type="number" 
-                          name="idade"
-                          value={editForm.idade || ''}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                          className="w-full p-3 md:p-3.5 bg-slate-50 border border-slate-200 rounded-xl md:rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all disabled:opacity-70"
-                        />
-                      </div>
-
-                      {/* Data de Nascimento */}
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                          <CalendarIcon className="w-3 h-3" /> Data de Nascimento
-                        </label>
-                        <input 
-                          type="date" 
-                          name="data_nascimento"
-                          value={editForm.data_nascimento || ''}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                          className="w-full p-3 md:p-3.5 bg-slate-50 border border-slate-200 rounded-xl md:rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all disabled:opacity-70"
-                        />
-                      </div>
-
-                      {/* Peso */}
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                          <Weight className="w-3 h-3" /> Peso (kg)
-                        </label>
-                        <input 
-                          type="number" 
-                          name="peso"
-                          value={editForm.peso || ''}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                          className="w-full p-3 md:p-3.5 bg-slate-50 border border-slate-200 rounded-xl md:rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all disabled:opacity-70"
-                        />
-                      </div>
-
-                      {/* Forehand */}
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                          <Zap className="w-3 h-3" /> Forehand
-                        </label>
-                        <select 
-                          name="forehand"
-                          value={editForm.forehand || ''}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                          className="w-full p-3 md:p-3.5 bg-slate-50 border border-slate-200 rounded-xl md:rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all disabled:opacity-70 appearance-none"
-                        >
-                          <option value="">Selecione...</option>
-                          <option value="destro">Destro</option>
-                          <option value="canhoto">Canhoto</option>
-                        </select>
-                      </div>
-
-                      {/* Backhand */}
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                          <Layers className="w-3 h-3" /> Backhand
-                        </label>
-                        <select 
-                          name="backhand"
-                          value={editForm.backhand || ''}
-                          onChange={handleInputChange}
-                          disabled={!isEditing}
-                          className="w-full p-3 md:p-3.5 bg-slate-50 border border-slate-200 rounded-xl md:rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all disabled:opacity-70 appearance-none"
-                        >
-                          <option value="">Selecione...</option>
-                          <option value="uma mao">Uma mão</option>
-                          <option value="duas maos">Duas mãos</option>
-                        </select>
+                        {isAdmin && isEditing ? (
+                          <select 
+                            name="categoria"
+                            value={editForm.categoria || ''}
+                            onChange={handleInputChange}
+                            className="w-full p-3 md:p-3.5 bg-slate-50 border border-slate-200 rounded-xl md:rounded-2xl text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                          >
+                            {CATEGORIES.filter(c => c !== 'TODOS').map(cat => (
+                              <option key={cat} value={cat}>{cat}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <div className="w-full p-3 md:p-3.5 bg-slate-50 border border-slate-200 rounded-xl md:rounded-2xl text-sm font-bold text-slate-700">
+                            {selectedPlayer.categoria}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -949,22 +884,6 @@ export function JogadoresPage() {
                         <input type="number" value={newPlayerForm.derrotas} onChange={(e) => setNewPlayerForm(p => ({ ...p, derrotas: parseInt(e.target.value) }))} className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold" />
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-500 uppercase">Forehand</label>
-                      <select value={newPlayerForm.forehand || ''} onChange={(e) => setNewPlayerForm(p => ({ ...p, forehand: e.target.value as any }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Selecione...</option>
-                        <option value="destro">Destro</option>
-                        <option value="canhoto">Canhoto</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-500 uppercase">Backhand</label>
-                      <select value={newPlayerForm.backhand || ''} onChange={(e) => setNewPlayerForm(p => ({ ...p, backhand: e.target.value as any }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Selecione...</option>
-                        <option value="uma mao">Uma mão</option>
-                        <option value="duas maos">Duas mãos</option>
-                      </select>
-                    </div>
                   </div>
 
                   <div className="space-y-4">
@@ -972,18 +891,6 @@ export function JogadoresPage() {
                     <div className="space-y-2">
                       <label className="text-[10px] font-black text-slate-500 uppercase">Celular</label>
                       <input type="text" value={newPlayerForm.celular || ''} onChange={(e) => setNewPlayerForm(p => ({ ...p, celular: formatPhone(e.target.value) }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-500 uppercase">Idade</label>
-                      <input type="number" value={newPlayerForm.idade || ''} onChange={(e) => setNewPlayerForm(p => ({ ...p, idade: parseInt(e.target.value) }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-500 uppercase">Data de Nascimento</label>
-                      <input type="date" value={newPlayerForm.data_nascimento || ''} onChange={(e) => setNewPlayerForm(p => ({ ...p, data_nascimento: e.target.value }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-500 uppercase">Peso (kg)</label>
-                      <input type="number" value={newPlayerForm.peso || ''} onChange={(e) => setNewPlayerForm(p => ({ ...p, peso: parseInt(e.target.value) }))} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500" />
                     </div>
                   </div>
                 </div>

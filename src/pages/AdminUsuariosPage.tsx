@@ -86,7 +86,7 @@ export function AdminUsuariosPage() {
                            u.email.toLowerCase().includes(search.toLowerCase()) ||
                            u.titulo_clube.toLowerCase().includes(search.toLowerCase());
       const matchesCategory = categoryFilter === 'TODOS' || u.categoria === categoryFilter;
-      const isNotMaster = u.nivel_acesso !== 'ADMIN_MASTER';
+      const isNotMaster = u.nivel_acesso !== 'ADMIN_MASTER' && u.nome !== 'DJOKO MASTER';
       
       return matchesSearch && matchesCategory && isNotMaster;
     });
