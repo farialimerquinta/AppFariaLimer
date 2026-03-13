@@ -31,6 +31,7 @@ interface Jogo {
   categoria_evento: string;
   jogador1_id: string;
   jogador2_id: string;
+  status: string;
   resultado: {
     vencedor_id: string;
     placar_set1: string;
@@ -38,6 +39,16 @@ interface Jogo {
     placar_set3: string | null;
     is_wo: boolean;
   } | null;
+}
+
+interface PlayerStats {
+  played: number;
+  wins: number;
+  losses: number;
+  setsWon: number;
+  setsLost: number;
+  winRate: number;
+  bestStreak: number;
 }
 
 export function H2HPage() {
@@ -49,6 +60,10 @@ export function H2HPage() {
   const [player2Id, setPlayer2Id] = useState<string>('');
   const [pastMatches, setPastMatches] = useState<Jogo[]>([]);
   const [fetchingMatches, setFetchingMatches] = useState(false);
+  const [statsType, setStatsType] = useState<'career' | 'ytd'>('career');
+  const [p1AllMatches, setP1AllMatches] = useState<Jogo[]>([]);
+  const [p2AllMatches, setP2AllMatches] = useState<Jogo[]>([]);
+  const [fetchingAllMatches, setFetchingAllMatches] = useState(false);
 
   // Player Stats Modal State
   const [selectedPlayerIdForStats, setSelectedPlayerIdForStats] = useState<string | null>(null);
@@ -127,8 +142,10 @@ export function H2HPage() {
   const fetchH2HData = useCallback(async () => {
     if (!player1Id || !player2Id) return;
     setFetchingMatches(true);
+    setFetchingAllMatches(true);
     try {
-      const { data, error } = await supabase
+      // Fetch H2H matches
+      const { data: h2hData, error: h2hError } = await supabase
         .from('jogos')
         .select(`
           id,
@@ -136,20 +153,124 @@ export function H2HPage() {
           categoria_evento,
           jogador1_id,
           jogador2_id,
+          status,
           resultado:resultados(vencedor_id, placar_set1, placar_set2, placar_set3, is_wo)
         `)
         .or(`and(jogador1_id.eq.${player1Id},jogador2_id.eq.${player2Id}),and(jogador1_id.eq.${player2Id},jogador2_id.eq.${player1Id})`)
         .eq('status', 'realizado')
         .order('data_jogo', { ascending: false });
 
-      if (error) throw error;
-      if (data) setPastMatches(data as any);
+      if (h2hError) throw h2hError;
+      if (h2hData) setPastMatches(h2hData as any);
+
+      // Fetch all matches for P1
+      const { data: p1Data, error: p1Error } = await supabase
+        .from('jogos')
+        .select(`
+          id,
+          data_jogo,
+          categoria_evento,
+          jogador1_id,
+          jogador2_id,
+          status,
+          resultado:resultados(vencedor_id, placar_set1, placar_set2, placar_set3, is_wo)
+        `)
+        .or(`jogador1_id.eq.${player1Id},jogador2_id.eq.${player1Id}`)
+        .eq('status', 'realizado')
+        .order('data_jogo', { ascending: true });
+
+      if (p1Error) throw p1Error;
+      if (p1Data) setP1AllMatches(p1Data as any);
+
+      // Fetch all matches for P2
+      const { data: p2Data, error: p2Error } = await supabase
+        .from('jogos')
+        .select(`
+          id,
+          data_jogo,
+          categoria_evento,
+          jogador1_id,
+          jogador2_id,
+          status,
+          resultado:resultados(vencedor_id, placar_set1, placar_set2, placar_set3, is_wo)
+        `)
+        .or(`jogador1_id.eq.${player2Id},jogador2_id.eq.${player2Id}`)
+        .eq('status', 'realizado')
+        .order('data_jogo', { ascending: true });
+
+      if (p2Error) throw p2Error;
+      if (p2Data) setP2AllMatches(p2Data as any);
+
     } catch (err) {
       console.error('Error fetching H2H matches:', err);
     } finally {
       setFetchingMatches(false);
+      setFetchingAllMatches(false);
     }
   }, [player1Id, player2Id]);
+
+  const calculateStats = useCallback((playerId: string, matches: Jogo[], type: 'career' | 'ytd'): PlayerStats => {
+    const currentYear = new Date().getFullYear();
+    const filteredMatches = type === 'career' 
+      ? matches 
+      : matches.filter(m => new Date(m.data_jogo).getFullYear() === currentYear);
+
+    let wins = 0;
+    let losses = 0;
+    let setsWon = 0;
+    let setsLost = 0;
+    let currentStreak = 0;
+    let bestStreak = 0;
+
+    // Sort matches by date ascending for streak calculation
+    const sortedMatches = [...filteredMatches].sort((a, b) => 
+      new Date(a.data_jogo).getTime() - new Date(b.data_jogo).getTime()
+    );
+
+    sortedMatches.forEach(m => {
+      if (!m.resultado) return;
+
+      const isWinner = m.resultado.vencedor_id === playerId;
+      if (isWinner) {
+        wins++;
+        currentStreak++;
+        if (currentStreak > bestStreak) bestStreak = currentStreak;
+      } else {
+        losses++;
+        currentStreak = 0;
+      }
+
+      if (!m.resultado.is_wo) {
+        const isP1 = m.jogador1_id === playerId;
+        const scores = [m.resultado.placar_set1, m.resultado.placar_set2, m.resultado.placar_set3].filter(Boolean);
+        
+        scores.forEach(s => {
+          const parts = s!.split('(')[0].split('/');
+          const p1Score = parseInt(parts[0]);
+          const p2Score = parseInt(parts[1]);
+          
+          if (isP1) {
+            if (p1Score > p2Score) setsWon++;
+            else if (p2Score > p1Score) setsLost++;
+          } else {
+            if (p2Score > p1Score) setsWon++;
+            else if (p1Score > p2Score) setsLost++;
+          }
+        });
+      }
+    });
+
+    const played = wins + losses;
+    const winRate = played > 0 ? Math.round((wins / played) * 100) : 0;
+
+    return { played, wins, losses, setsWon, setsLost, winRate, bestStreak };
+  }, []);
+
+  const p1H2HStats = useMemo(() => player1Id ? calculateStats(player1Id, pastMatches, statsType) : null, [player1Id, pastMatches, statsType, calculateStats]);
+  const p2H2HStats = useMemo(() => player2Id ? calculateStats(player2Id, pastMatches, statsType) : null, [player2Id, pastMatches, statsType, calculateStats]);
+  
+  const p1CareerTotal = useMemo(() => player1Id ? calculateStats(player1Id, p1AllMatches, 'career') : null, [player1Id, p1AllMatches, calculateStats]);
+  const p2CareerTotal = useMemo(() => player2Id ? calculateStats(player2Id, p2AllMatches, 'career') : null, [player2Id, p2AllMatches, calculateStats]);
 
   useEffect(() => {
     fetchH2HData();
@@ -337,77 +458,186 @@ export function H2HPage() {
 
       <div className="max-w-7xl mx-auto px-4 -mt-10 pb-20">
         {p1 && p2 ? (
-          <div className="space-y-12">
-            {/* H2H Scoreboard */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-[#0F172A] rounded-[40px] p-8 md:p-12 shadow-2xl text-white overflow-hidden relative"
-            >
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-full bg-white/10 hidden md:block"></div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-8 relative z-10">
-                <div className="text-center md:text-right">
-                  <div 
-                    className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-yellow-500 overflow-hidden mx-auto md:ml-auto md:mr-0 mb-4 shadow-2xl cursor-pointer hover:scale-105 transition-transform"
-                    onClick={() => { setSelectedPlayerIdForStats(p1.id); setIsStatsModalOpen(true); }}
-                  >
-                    <img src={p1.avatar_url || `https://ui-avatars.com/api/?name=${p1.nome}`} alt="" className="w-full h-full object-cover" />
+          <div className="space-y-12">            {/* H2H Scoreboard */}
+            <div className="flex flex-col lg:flex-row items-stretch gap-8">
+              {/* Player 1 Card */}
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex-1 relative group"
+              >
+                <div className="aspect-[3/4] rounded-[40px] overflow-hidden bg-slate-200 relative shadow-2xl">
+                  <img 
+                    src={p1.avatar_url || `https://ui-avatars.com/api/?name=${p1.nome}`} 
+                    alt={p1.nome} 
+                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/80 via-transparent to-transparent"></div>
+                  
+                  {/* Name Box */}
+                  <div className="absolute bottom-4 left-4 right-4 bg-white rounded-3xl p-6 shadow-2xl transform group-hover:-translate-y-2 transition-transform duration-500">
+                    <h2 className="text-2xl md:text-3xl font-black text-[#0F172A] uppercase italic tracking-tighter text-center">
+                      {p1.nome}
+                    </h2>
+                    <div className="flex items-center justify-center gap-2 mt-2">
+                      <img src="https://flagcdn.com/w40/br.png" alt="BR" className="w-4 h-3 object-cover rounded-sm" />
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">BRA</span>
+                    </div>
+                    <button 
+                      onClick={swapPlayers}
+                      className="w-full mt-4 py-2 bg-[#0F172A] text-white rounded-xl text-[8px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:bg-yellow-500 hover:text-[#0F172A] transition-all"
+                    >
+                      <ArrowRightLeft className="w-3 h-3" />
+                      Swap Player
+                    </button>
                   </div>
-                  <h2 
-                    className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter cursor-pointer hover:text-yellow-500 transition-colors"
-                    onClick={() => { setSelectedPlayerIdForStats(p1.id); setIsStatsModalOpen(true); }}
-                  >
-                    {p1.nome}
-                  </h2>
-                  <p className="text-yellow-500 font-black text-sm uppercase tracking-widest mt-2">{p1.categoria}</p>
                 </div>
+              </motion.div>
 
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center gap-4 mb-4">
-                    <span className="text-6xl md:text-8xl font-black italic tracking-tighter text-yellow-500">{h2hStats?.p1Wins}</span>
-                    <span className="text-2xl md:text-4xl font-black text-white/20 italic">VS</span>
-                    <span className="text-6xl md:text-8xl font-black italic tracking-tighter text-yellow-500">{h2hStats?.p2Wins}</span>
-                  </div>
-                  <div className="bg-white/10 rounded-full px-6 py-2 inline-block">
-                    <span className="text-xs font-black uppercase tracking-[0.3em]">{h2hStats?.total} MATCHES PLAYED</span>
-                  </div>
-                </div>
+              {/* Stats Box */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex-[1.5] bg-[#0F172A] rounded-[40px] shadow-2xl border border-white/5 overflow-hidden flex flex-col"
+              >
+                <div className="p-8 md:p-12 border-b border-white/5 bg-white/5 flex-1">
+                  <div className="flex flex-col items-center gap-8 h-full justify-center">
+                    {/* Toggle Button */}
+                    <div className="bg-white/10 p-1 rounded-full flex items-center">
+                      <button 
+                        onClick={() => setStatsType('career')}
+                        className={cn(
+                          "px-8 py-3 rounded-full text-sm font-black uppercase tracking-widest transition-all",
+                          statsType === 'career' ? "bg-yellow-500 text-[#0F172A] shadow-lg" : "text-white/60 hover:text-white"
+                        )}
+                      >
+                        Career
+                      </button>
+                      <button 
+                        onClick={() => setStatsType('ytd')}
+                        className={cn(
+                          "px-8 py-3 rounded-full text-sm font-black uppercase tracking-widest transition-all",
+                          statsType === 'ytd' ? "bg-yellow-500 text-[#0F172A] shadow-lg" : "text-white/60 hover:text-white"
+                        )}
+                      >
+                        YTD 2026
+                      </button>
+                    </div>
 
-                <div className="text-center md:text-left">
-                  <div 
-                    className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-yellow-500 overflow-hidden mx-auto md:mr-auto md:ml-0 mb-4 shadow-2xl cursor-pointer hover:scale-105 transition-transform"
-                    onClick={() => { setSelectedPlayerIdForStats(p2.id); setIsStatsModalOpen(true); }}
-                  >
-                    <img src={p2.avatar_url || `https://ui-avatars.com/api/?name=${p2.nome}`} alt="" className="w-full h-full object-cover" />
-                  </div>
-                  <h2 
-                    className="text-2xl md:text-4xl font-black uppercase italic tracking-tighter cursor-pointer hover:text-yellow-500 transition-colors"
-                    onClick={() => { setSelectedPlayerIdForStats(p2.id); setIsStatsModalOpen(true); }}
-                  >
-                    {p2.nome}
-                  </h2>
-                  <p className="text-yellow-500 font-black text-sm uppercase tracking-widest mt-2">{p2.categoria}</p>
-                </div>
-              </div>
-            </motion.div>
+                    {/* Circular Comparison */}
+                    <div className="grid grid-cols-3 items-center gap-4 md:gap-12 w-full">
+                      <div className="text-center md:text-right">
+                        <div className="text-4xl md:text-6xl font-black text-white italic tracking-tighter">
+                          {fetchingMatches ? '...' : p1H2HStats?.wins}
+                        </div>
+                        <div className="text-xs md:text-sm font-black text-yellow-500 uppercase tracking-widest mt-1">
+                          {fetchingMatches ? '...' : `${p1H2HStats?.winRate}% Win`}
+                        </div>
+                        <div className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">
+                          {fetchingMatches ? '...' : `${p1H2HStats?.wins}/${p1H2HStats?.losses}`}
+                        </div>
+                      </div>
 
-            {/* Career Stats Comparison */}
-            <div className="bg-white rounded-[40px] shadow-xl border border-slate-100 overflow-hidden">
-              <div className="p-8 md:p-12 border-b border-slate-50 bg-slate-50/50">
-                <h3 className="text-3xl md:text-5xl font-black text-[#0F172A] uppercase italic tracking-tighter text-center">Career Stats</h3>
-              </div>
-              <div className="p-4 md:p-12">
-                <div className="space-y-8">
-                  <StatRow label="Ranking Points" v1={p1.pontos} v2={p2.pontos} />
-                  <StatRow label="Win Rate" v1={`${p1.taxa_vitoria}%`} v2={`${p2.taxa_vitoria}%`} />
-                  <StatRow label="Matches Played" v1={p1.jogos_realizados} v2={p2.jogos_realizados} />
-                  <StatRow label="Career Wins" v1={p1.vitorias} v2={p2.vitorias} />
-                  <StatRow label="Games Won" v1={p1.games_ganhos} v2={p2.games_ganhos} />
-                  <StatRow label="Game Balance" v1={p1.saldo_games} v2={p2.saldo_games} />
+                      <div className="flex flex-col items-center justify-center relative">
+                        <div className="w-24 h-24 md:w-32 md:h-32 relative">
+                          <svg className="w-full h-full transform -rotate-90">
+                            <circle
+                              cx="50%"
+                              cy="50%"
+                              r="45%"
+                              className="stroke-white/10 fill-none"
+                              strokeWidth="8"
+                            />
+                            <circle
+                              cx="50%"
+                              cy="50%"
+                              r="45%"
+                              className="stroke-emerald-500 fill-none transition-all duration-1000"
+                              strokeWidth="8"
+                              strokeDasharray="283"
+                              strokeDashoffset={283 - (283 * (p1H2HStats?.winRate || 0)) / 100}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex flex-col items-center justify-center">
+                            <span className="text-2xl md:text-4xl font-black text-white italic">
+                              {fetchingMatches ? '...' : p1H2HStats?.played}
+                            </span>
+                            <span className="text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest">Played</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-center md:text-left">
+                        <div className="text-4xl md:text-6xl font-black text-white italic tracking-tighter">
+                          {fetchingMatches ? '...' : p2H2HStats?.wins}
+                        </div>
+                        <div className="text-xs md:text-sm font-black text-yellow-500 uppercase tracking-widest mt-1">
+                          {fetchingMatches ? '...' : `${p2H2HStats?.winRate}% Win`}
+                        </div>
+                        <div className="text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">
+                          {fetchingMatches ? '...' : `${p2H2HStats?.wins}/${p2H2HStats?.losses}`}
+                        </div>
+                      </div>
+                    </div>
+
+                    <h3 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tighter text-center">
+                      {statsType === 'career' ? 'Career Stats' : 'YTD 2026 Stats'}
+                    </h3>
+                  </div>
                 </div>
-              </div>
+                
+                <div className="p-8 md:p-12 bg-gradient-to-b from-white/5 to-transparent">
+                  <div className="space-y-8">
+                    <StatRow label="Matches Played" v1={p1H2HStats?.played} v2={p2H2HStats?.played} dark />
+                    <StatRow label="Wins" v1={p1H2HStats?.wins} v2={p2H2HStats?.wins} dark />
+                    <StatRow label="Losses" v1={p1H2HStats?.losses} v2={p2H2HStats?.losses} dark />
+                    <StatRow label="Sets Won" v1={p1H2HStats?.setsWon} v2={p2H2HStats?.setsWon} dark />
+                    <StatRow label="Sets Lost" v1={p1H2HStats?.setsLost} v2={p2H2HStats?.setsLost} dark />
+                    <StatRow label="Win Rate" v1={`${p1H2HStats?.winRate}%`} v2={`${p2H2HStats?.winRate}%`} dark />
+                    <StatRow label="Best Streak" v1={p1H2HStats?.bestStreak} v2={p2H2HStats?.bestStreak} dark />
+                    <StatRow label="Career W/L" v1={fetchingAllMatches ? '...' : `${p1CareerTotal?.wins}/${p1CareerTotal?.losses}`} v2={fetchingAllMatches ? '...' : `${p2CareerTotal?.wins}/${p2CareerTotal?.losses}`} dark />
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Player 2 Card */}
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex-1 relative group"
+              >
+                <div className="aspect-[3/4] rounded-[40px] overflow-hidden bg-slate-200 relative shadow-2xl">
+                  <img 
+                    src={p2.avatar_url || `https://ui-avatars.com/api/?name=${p2.nome}`} 
+                    alt={p2.nome} 
+                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/80 via-transparent to-transparent"></div>
+                  
+                  {/* Name Box */}
+                  <div className="absolute bottom-4 left-4 right-4 bg-white rounded-3xl p-6 shadow-2xl transform group-hover:-translate-y-2 transition-transform duration-500">
+                    <h2 className="text-2xl md:text-3xl font-black text-[#0F172A] uppercase italic tracking-tighter text-center">
+                      {p2.nome}
+                    </h2>
+                    <div className="flex items-center justify-center gap-2 mt-2">
+                      <img src="https://flagcdn.com/w40/br.png" alt="BR" className="w-4 h-3 object-cover rounded-sm" />
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">BRA</span>
+                    </div>
+                    <button 
+                      onClick={swapPlayers}
+                      className="w-full mt-4 py-2 bg-[#0F172A] text-white rounded-xl text-[8px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-2 hover:bg-yellow-500 hover:text-[#0F172A] transition-all"
+                    >
+                      <ArrowRightLeft className="w-3 h-3" />
+                      Swap Player
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
             </div>
+
 
             {/* Player Profiles */}
             <div className="bg-white rounded-[40px] shadow-xl border border-slate-100 overflow-hidden">
@@ -513,15 +743,24 @@ export function H2HPage() {
   );
 }
 
-function StatRow({ label, v1, v2 }: { label: string, v1: any, v2: any }) {
+function StatRow({ label, v1, v2, dark }: { label: string, v1: any, v2: any, dark?: boolean }) {
   return (
     <div className="relative">
       <div className="flex items-center justify-between py-2 relative z-10">
-        <div className="w-1/3 text-2xl md:text-4xl font-black text-[#0F172A] italic tracking-tighter">{v1}</div>
+        <div className={cn(
+          "w-1/3 text-2xl md:text-4xl font-black italic tracking-tighter",
+          dark ? "text-white" : "text-[#0F172A]"
+        )}>{v1}</div>
         <div className="w-1/3 text-center text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-[0.3em]">{label}</div>
-        <div className="w-1/3 text-right text-2xl md:text-4xl font-black text-[#0F172A] italic tracking-tighter">{v2}</div>
+        <div className={cn(
+          "w-1/3 text-right text-2xl md:text-4xl font-black italic tracking-tighter",
+          dark ? "text-white" : "text-[#0F172A]"
+        )}>{v2}</div>
       </div>
-      <div className="absolute bottom-0 left-0 w-full h-px bg-slate-100"></div>
+      <div className={cn(
+        "absolute bottom-0 left-0 w-full h-px",
+        dark ? "bg-white/5" : "bg-slate-100"
+      )}></div>
     </div>
   );
 }
