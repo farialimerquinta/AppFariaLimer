@@ -22,40 +22,11 @@ export function ResetDataPage() {
     setError(null);
 
     try {
-      // 1. Archive played games (kept with their results for the H2H career history)
-      const { error: arquivarError } = await supabase
-        .from('jogos')
-        .update({ arquivado: true })
-        .eq('status', 'realizado')
-        .eq('arquivado', false);
+      // Saves the final ranking, archives played games and zeroes points only.
+      // Nothing is deleted: wins, losses and games stay as career stats.
+      const { error: temporadaError } = await supabase.rpc('fn_nova_temporada');
 
-      if (arquivarError) throw arquivarError;
-
-      // 2. Delete games that were only scheduled (no result to preserve)
-      const { error: jogosError } = await supabase
-        .from('jogos')
-        .delete()
-        .eq('status', 'agendado');
-
-      if (jogosError) throw jogosError;
-
-      // 3. Reset player stats
-      const { error: perfisError } = await supabase
-        .from('perfis')
-        .update({
-          pontos: 0,
-          vitorias: 0,
-          derrotas: 0,
-          jogos_totais: 0,
-          jogos_realizados: 0,
-          games_ganhos: 0,
-          games_perdidos: 0,
-          saldo_games: 0,
-          taxa_vitoria: 0
-        })
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Update all
-
-      if (perfisError) throw perfisError;
+      if (temporadaError) throw temporadaError;
 
       setSuccess(true);
       setTimeout(() => {
@@ -63,7 +34,7 @@ export function ResetDataPage() {
       }, 3000);
     } catch (err: any) {
       console.error('Error resetting data:', err);
-      setError('Erro ao resetar dados. Verifique as permissões do banco de dados.');
+      setError('Erro ao zerar os pontos. Verifique as permissões do banco de dados.');
     } finally {
       setLoading(false);
     }
@@ -116,8 +87,8 @@ export function ResetDataPage() {
             <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="w-10 h-10" />
             </div>
-            <h2 className="text-2xl font-black text-slate-900 mb-2 uppercase italic">Base Limpa!</h2>
-            <p className="text-slate-500 font-medium mb-8">Ranking e estatísticas foram resetados. Os confrontos realizados continuam no histórico do H2H.</p>
+            <h2 className="text-2xl font-black text-slate-900 mb-2 uppercase italic">Nova Temporada!</h2>
+            <p className="text-slate-500 font-medium mb-8">Os pontos foram zerados. Jogos, vitórias e derrotas continuam nas estatísticas de carreira e no H2H.</p>
             <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
               <motion.div 
                 initial={{ width: 0 }}
@@ -132,9 +103,9 @@ export function ResetDataPage() {
             <div className="flex items-start gap-4 p-6 bg-red-50 rounded-3xl border border-red-100">
               <AlertTriangle className="w-8 h-8 text-red-600 shrink-0" />
               <div>
-                <h3 className="font-black text-red-900 uppercase italic mb-1">Atenção: Ação Irreversível</h3>
+                <h3 className="font-black text-red-900 uppercase italic mb-1">Atenção: Virada de Temporada</h3>
                 <p className="text-sm text-red-700 font-medium">
-                  Esta ação irá apagar os jogos agendados e resetar o ranking e as estatísticas de todos os jogadores para zero. Os jogos já realizados saem do ranking, mas ficam guardados no histórico do H2H.
+                  Esta ação zera os pontos de todos os jogadores para começar uma nova temporada. Nenhum jogo é apagado: vitórias, derrotas e confrontos continuam nas estatísticas de carreira e no H2H. O ranking final é guardado no backup antes de zerar.
                 </p>
               </div>
             </div>
@@ -166,7 +137,7 @@ export function ResetDataPage() {
                 className="w-full py-5 bg-red-600 hover:bg-red-700 text-white font-black rounded-2xl shadow-xl shadow-red-500/20 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3 uppercase tracking-widest text-sm"
               >
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
-                LIMPAR TODA A BASE
+                ZERAR PONTOS DA TEMPORADA
               </button>
               
               <button

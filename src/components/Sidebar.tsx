@@ -32,7 +32,7 @@ const menuItems = [
 const adminItems = [
   { name: 'Admin Usuários', path: '/admin/usuarios', icon: ShieldAlert },
   { name: 'LOGs', path: '/admin/logs', icon: History },
-  { name: 'Reset All Data', path: '/admin/reset', icon: Trash2, variant: 'danger' },
+  { name: 'Zerar Pontos (Nova Temporada)', path: '/admin/reset', icon: Trash2, variant: 'danger' },
 ];
 
 export function Sidebar() {

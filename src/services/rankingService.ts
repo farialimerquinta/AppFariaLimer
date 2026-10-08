@@ -24,7 +24,8 @@ export async function recalculateRanking() {
       };
     });
 
-    // 3. Fetch all completed games with results (archived seasons don't count)
+    // 3. Fetch all completed games with results
+    // Archived games (past seasons) still count for career stats, but not for points
     const { data: games, error: gamesError } = await supabase
       .from('jogos')
       .select(`
@@ -33,10 +34,10 @@ export async function recalculateRanking() {
         jogador1_id,
         jogador2_id,
         status,
+        arquivado,
         resultado:resultados(vencedor_id, placar_set1, placar_set2, placar_set3, is_wo)
       `)
-      .eq('status', 'realizado')
-      .eq('arquivado', false);
+      .eq('status', 'realizado');
 
     if (gamesError) throw gamesError;
 
@@ -57,14 +58,14 @@ export async function recalculateRanking() {
       if (statsMap[vencedorId]) statsMap[vencedorId].vitorias++;
       if (statsMap[perdedorId]) statsMap[perdedorId].derrotas++;
 
-      // Points calculation
+      // Points calculation (current season only)
       // Victory: 3 points
       // Defeat: 1 point
       // WO Defeat: 0 points
-      if (statsMap[vencedorId]) {
+      if (statsMap[vencedorId] && !game.arquivado) {
         statsMap[vencedorId].pontos += 3;
       }
-      if (statsMap[perdedorId]) {
+      if (statsMap[perdedorId] && !game.arquivado) {
         if (!res.is_wo) {
           statsMap[perdedorId].pontos += 1;
         }

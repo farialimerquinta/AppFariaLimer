@@ -83,7 +83,6 @@ export function PlayerStatsModal({ playerId, isOpen, onClose }: PlayerStatsModal
         `)
         .or(`jogador1_id.eq.${playerId},jogador2_id.eq.${playerId}`)
         .eq('status', 'realizado')
-        .eq('arquivado', false)
         .order('data_jogo', { ascending: false })
         .limit(10);
 
