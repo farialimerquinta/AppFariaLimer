@@ -112,6 +112,7 @@ export function AgendarJogoPage() {
       .from('jogos')
       .select('id, status, data_jogo')
       .or(`and(jogador1_id.eq.${id1},jogador2_id.eq.${id2}),and(jogador1_id.eq.${id2},jogador2_id.eq.${id1})`)
+      .eq('arquivado', false)
       .gte('data_jogo', startDate)
       .lte('data_jogo', endDate);
 

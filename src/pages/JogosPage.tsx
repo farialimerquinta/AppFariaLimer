@@ -76,6 +76,7 @@ export function JogosPage() {
           jogador2:jogador2_id(id, nome, avatar_url, ativo, nivel_acesso),
           resultado:resultados(vencedor_id, placar_set1, placar_set2, placar_set3, is_wo)
         `)
+        .eq('arquivado', false)
         .order('data_jogo', { ascending: false });
 
       if (filter !== 'todos') {

@@ -22,19 +22,20 @@ export function ResetDataPage() {
     setError(null);
 
     try {
-      // 1. Delete all results
-      const { error: resError } = await supabase
-        .from('resultados')
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+      // 1. Archive played games (kept with their results for the H2H career history)
+      const { error: arquivarError } = await supabase
+        .from('jogos')
+        .update({ arquivado: true })
+        .eq('status', 'realizado')
+        .eq('arquivado', false);
 
-      if (resError) throw resError;
+      if (arquivarError) throw arquivarError;
 
-      // 2. Delete all games
+      // 2. Delete games that were only scheduled (no result to preserve)
       const { error: jogosError } = await supabase
         .from('jogos')
         .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+        .eq('status', 'agendado');
 
       if (jogosError) throw jogosError;
 
@@ -116,7 +117,7 @@ export function ResetDataPage() {
               <CheckCircle2 className="w-10 h-10" />
             </div>
             <h2 className="text-2xl font-black text-slate-900 mb-2 uppercase italic">Base Limpa!</h2>
-            <p className="text-slate-500 font-medium mb-8">Todos os jogos, resultados e estatísticas foram resetados com sucesso.</p>
+            <p className="text-slate-500 font-medium mb-8">Ranking e estatísticas foram resetados. Os confrontos realizados continuam no histórico do H2H.</p>
             <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
               <motion.div 
                 initial={{ width: 0 }}
@@ -133,7 +134,7 @@ export function ResetDataPage() {
               <div>
                 <h3 className="font-black text-red-900 uppercase italic mb-1">Atenção: Ação Irreversível</h3>
                 <p className="text-sm text-red-700 font-medium">
-                  Esta ação irá apagar permanentemente todos os jogos agendados, resultados de partidas e resetar as estatísticas de todos os jogadores para zero.
+                  Esta ação irá apagar os jogos agendados e resetar o ranking e as estatísticas de todos os jogadores para zero. Os jogos já realizados saem do ranking, mas ficam guardados no histórico do H2H.
                 </p>
               </div>
             </div>

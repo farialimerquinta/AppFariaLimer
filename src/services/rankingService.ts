@@ -24,7 +24,7 @@ export async function recalculateRanking() {
       };
     });
 
-    // 3. Fetch all completed games with results
+    // 3. Fetch all completed games with results (archived seasons don't count)
     const { data: games, error: gamesError } = await supabase
       .from('jogos')
       .select(`
@@ -35,7 +35,8 @@ export async function recalculateRanking() {
         status,
         resultado:resultados(vencedor_id, placar_set1, placar_set2, placar_set3, is_wo)
       `)
-      .eq('status', 'realizado');
+      .eq('status', 'realizado')
+      .eq('arquivado', false);
 
     if (gamesError) throw gamesError;
 

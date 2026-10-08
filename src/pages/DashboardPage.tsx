@@ -115,6 +115,7 @@ export function DashboardPage() {
           jogador2:jogador2_id(id, nome, avatar_url, ativo, nivel_acesso)
         `)
         .eq('status', 'agendado')
+        .eq('arquivado', false)
         .gte('data_jogo', new Date().toISOString())
         .order('data_jogo', { ascending: true })
         .limit(3);
@@ -132,6 +133,7 @@ export function DashboardPage() {
           resultado:resultados(vencedor_id, placar_set1, placar_set2, placar_set3, is_wo)
         `)
         .eq('status', 'realizado')
+        .eq('arquivado', false)
         .order('data_jogo', { ascending: false })
         .limit(3);
 
