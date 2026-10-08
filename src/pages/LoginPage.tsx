@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trophy, Lock, User, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { logActivity } from '../services/logService';
 import { motion } from 'motion/react';
-import { supabase } from '../services/supabase';
 
 export function LoginPage() {
   const [tituloClube, setTituloClube] = useState('');
@@ -25,23 +23,7 @@ export function LoginPage() {
       setError(result.error);
       setLoading(false);
     } else {
-      try {
-        // Log activity reliably
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from('perfis')
-            .select('nome')
-            .eq('id', user.id)
-            .single();
-            
-          if (profile) {
-            await logActivity(user.id, profile.nome, 'Login', `Usuário ${profile.nome} acessou o sistema.`);
-          }
-        }
-      } catch (logErr) {
-        console.warn('Falha ao registrar log de login:', logErr);
-      }
+      // Login (and failed attempts) are logged inside AuthContext.login
       navigate('/');
     }
   };

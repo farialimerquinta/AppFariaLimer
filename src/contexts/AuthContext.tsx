@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
+import { logActivity, logError } from '../services/logService';
 
 interface UserProfile {
   id: string;
@@ -92,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
         setUser(demoUser);
         localStorage.setItem('faria_limer_demo_user', JSON.stringify(demoUser));
+        logActivity(null, demoUser.nome, 'Login', `Acesso pelo usuário de demonstração (${tituloClube}).`);
         return { error: null };
       }
 
@@ -103,14 +105,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (profileError || !profile) {
+        logActivity(null, 'Não identificado', 'Falha de Login', `Tentativa de acesso com título inexistente: ${tituloClube}.`);
         return { error: 'Usuário não encontrado.' };
       }
 
       if (profile.ativo === false) {
+        logActivity(profile.id, profile.nome, 'Falha de Login', `Tentativa de acesso de usuário inativo (${tituloClube}).`);
         return { error: 'Este usuário está inativo e não pode acessar o sistema.' };
       }
 
       if (profile.senha_cpf !== senhaCpf) {
+        logActivity(profile.id, profile.nome, 'Falha de Login', `Senha incorreta para ${profile.nome} (${tituloClube}).`);
         return { error: 'Senha incorreta.' };
       }
 
@@ -129,13 +134,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       }
 
+      logActivity(profile.id, profile.nome, 'Login', `Usuário ${profile.nome} acessou o sistema.`);
+
       return { error: null };
     } catch (err) {
+      logError('Login', err, { titulo_clube: tituloClube });
       return { error: 'Erro ao realizar login.' };
     }
   };
 
   const logout = async () => {
+    if (user) {
+      await logActivity(user.id, user.nome, 'Logout', `Usuário ${user.nome} saiu do sistema.`);
+    }
     localStorage.removeItem('faria_limer_demo_user');
     await supabase.auth.signOut();
     setUser(null);

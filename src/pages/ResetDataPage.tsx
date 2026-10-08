@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trash2, AlertTriangle, Loader2, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { supabase } from '../services/supabase';
+import { logActivity, logError, getStoredUser } from '../services/logService';
 import { motion } from 'motion/react';
 import { cn } from '../utils';
 
@@ -28,12 +29,16 @@ export function ResetDataPage() {
 
       if (temporadaError) throw temporadaError;
 
+      const { id, nome } = getStoredUser();
+      logActivity(id, nome, 'Nova Temporada', `${nome} zerou os pontos e iniciou uma nova temporada.`);
+
       setSuccess(true);
       setTimeout(() => {
         navigate('/');
       }, 3000);
     } catch (err: any) {
       console.error('Error resetting data:', err);
+      logError('Zerar pontos (nova temporada)', err);
       setError('Erro ao zerar os pontos. Verifique as permissões do banco de dados.');
     } finally {
       setLoading(false);

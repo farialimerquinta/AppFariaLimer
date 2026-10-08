@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Calendar as CalendarIcon, User, FileText, Send, AlertCircle, CheckCircle2, Trophy, Loader2, Clock } from 'lucide-react';
 import { supabase } from '../services/supabase';
-import { logActivity } from '../services/logService';
+import { logActivity, logError } from '../services/logService';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'motion/react';
 import { cn } from '../utils';
@@ -173,6 +173,7 @@ export function AgendarJogoPage() {
 
       if (insertError) {
         setError(insertError.message);
+        logError('Agendar jogo', insertError, { dados: formData });
       } else {
         // Log activity
         if (user) {
@@ -198,6 +199,7 @@ export function AgendarJogoPage() {
       }
     } catch (err: any) {
       setError(err.message || 'Erro ao processar o agendamento.');
+      logError('Agendar jogo', err, { dados: formData });
     } finally {
       setSubmitting(false);
     }

@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { logError } from './logService';
 
 export async function recalculateRanking() {
   try {
@@ -120,11 +121,15 @@ export async function recalculateRanking() {
         .eq('id', id);
     });
 
-    await Promise.all(updatePromises);
+    const results = await Promise.all(updatePromises);
+    const failed = results.find(r => r.error);
+    if (failed?.error) throw failed.error;
+
     console.log('Ranking recalculated successfully');
     return { success: true };
   } catch (err) {
     console.error('Error recalculating ranking:', err);
+    logError('Recalcular ranking', err);
     return { success: false, error: err };
   }
 }

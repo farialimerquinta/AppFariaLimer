@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Calendar, User, Trophy, X, Save, AlertCircle, CheckCircle2, MessageSquare, Users, Clock, MapPin, ChevronRight, Info, LayoutDashboard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
-import { logActivity } from '../services/logService';
+import { logActivity, logError } from '../services/logService';
 import { recalculateRanking } from '../services/rankingService';
 import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
@@ -31,6 +31,7 @@ interface Jogo {
 
 export function RegistrarResultadoPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [jogos, setJogos] = useState<Jogo[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedJogo, setSelectedJogo] = useState<Jogo | null>(null);
@@ -142,6 +143,9 @@ export function RegistrarResultadoPage() {
     setSubmitting(true);
     setError(null);
 
+    // Which step we are in, so a failure can be audited (validation errors aren't logged)
+    let etapa = 'validação';
+
     try {
       let vencedor_id = '';
       const sets_j1 = (placar.set1_j1 > placar.set1_j2 ? 1 : 0) + 
@@ -166,20 +170,25 @@ export function RegistrarResultadoPage() {
         return res;
       };
 
+      const resultData = {
+        jogo_id: selectedJogo.id,
+        vencedor_id,
+        is_wo: placar.is_wo,
+        placar_set1: formatSet(placar.set1_j1, placar.set1_j2, placar.tb1_j1, placar.tb1_j2),
+        placar_set2: formatSet(placar.set2_j1, placar.set2_j2, placar.tb2_j1, placar.tb2_j2),
+        placar_set3: placar.set3_j1 || placar.set3_j2 ? formatSet(placar.set3_j1, placar.set3_j2, placar.tb3_j1, placar.tb3_j2) : null,
+        lancado_por: user?.nome || null
+      };
+
+      etapa = 'gravar resultado';
       const { error: insertError } = await supabase
         .from('resultados')
-        .insert([{
-          jogo_id: selectedJogo.id,
-          vencedor_id,
-          is_wo: placar.is_wo,
-          placar_set1: formatSet(placar.set1_j1, placar.set1_j2, placar.tb1_j1, placar.tb1_j2),
-          placar_set2: formatSet(placar.set2_j1, placar.set2_j2, placar.tb2_j1, placar.tb2_j2),
-          placar_set3: placar.set3_j1 || placar.set3_j2 ? formatSet(placar.set3_j1, placar.set3_j2, placar.tb3_j1, placar.tb3_j2) : null
-        }]);
+        .insert([resultData]);
 
       if (insertError) throw insertError;
 
       // Update game status to 'realizado'
+      etapa = 'atualizar status do jogo';
       const { error: updateError } = await supabase
         .from('jogos')
         .update({ status: 'realizado' })
@@ -191,16 +200,20 @@ export function RegistrarResultadoPage() {
       await recalculateRanking();
 
       // Log activity
-      const user = (await supabase.auth.getUser()).data.user;
-      const { data: profile } = await supabase.from('perfis').select('nome').eq('id', user?.id).single();
-      if (user && profile) {
-        logActivity(
-          user.id,
-          profile.nome,
-          'Registro de Resultado',
-          `Resultado registrado para o jogo ${selectedJogo.jogador1.nome} vs ${selectedJogo.jogador2.nome}. Vencedor: ${vencedor_id === selectedJogo.jogador1.id ? selectedJogo.jogador1.nome : selectedJogo.jogador2.nome}`
-        );
-      }
+      const vencedorNome = vencedor_id === selectedJogo.jogador1.id ? selectedJogo.jogador1.nome : selectedJogo.jogador2.nome;
+      logActivity(
+        user?.id || null,
+        user?.nome || 'Não identificado',
+        'Registro de Resultado',
+        `Resultado registrado para o jogo ${selectedJogo.jogador1.nome} vs ${selectedJogo.jogador2.nome}. Vencedor: ${vencedorNome}`,
+        {
+          jogo_id: selectedJogo.id,
+          data_jogo: selectedJogo.data_jogo,
+          placar: [resultData.placar_set1, resultData.placar_set2, resultData.placar_set3].filter(Boolean).join(' '),
+          vencedor: vencedorNome,
+          is_wo: placar.is_wo
+        }
+      );
 
       setSuccess(true);
       setTimeout(() => {
@@ -210,6 +223,14 @@ export function RegistrarResultadoPage() {
 
     } catch (err: any) {
       setError(err.message);
+      if (etapa !== 'validação') {
+        logError('Registrar resultado', err, {
+          etapa,
+          jogo_id: selectedJogo.id,
+          jogo: `${selectedJogo.jogador1.nome} vs ${selectedJogo.jogador2.nome}`,
+          placar_digitado: placar
+        });
+      }
     } finally {
       setSubmitting(false);
     }

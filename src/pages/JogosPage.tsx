@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Calendar, CheckCircle2, Clock, Filter, Search, Trophy, Timer, MapPin, ExternalLink, Edit2, X, Save, AlertCircle, Loader2, Trash2, LayoutDashboard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
-import { logActivity } from '../services/logService';
+import { logActivity, logError } from '../services/logService';
 import { recalculateRanking } from '../services/rankingService';
 import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'motion/react';
@@ -140,7 +140,13 @@ export function JogosPage() {
             user.id,
             user.nome,
             'Exclusão de Jogo',
-            `Confronto entre ${gameToDelete.jogador1.nome} e ${gameToDelete.jogador2.nome} foi removido.`
+            `Confronto entre ${gameToDelete.jogador1.nome} e ${gameToDelete.jogador2.nome} foi removido.`,
+            {
+              jogo_id: gameId,
+              data_jogo: gameToDelete.data_jogo,
+              status: gameToDelete.status,
+              resultado_apagado: gameToDelete.resultado || null
+            }
           );
         } catch (logErr) {
           console.warn('Log failed but game was deleted:', logErr);
@@ -160,6 +166,7 @@ export function JogosPage() {
       
     } catch (err: any) {
       console.error('Full error context:', err);
+      logError('Excluir jogo', err, { jogo_id: gameId, jogo: `${gameToDelete.jogador1.nome} vs ${gameToDelete.jogador2.nome}` });
       setError(err.message || 'Erro inesperado ao apagar o jogo.');
     } finally {
       setDeletingId(null);
@@ -480,6 +487,16 @@ export function JogosPage() {
     setSubmitting(true);
     setError(null);
 
+    // Result as it was before this edit, for the audit log
+    const resAntes: any = Array.isArray(selectedJogo.resultado) ? selectedJogo.resultado[0] : selectedJogo.resultado;
+    const nomeDe = (id?: string) => id === (selectedJogo.jogador1 as any).id ? selectedJogo.jogador1.nome : id === (selectedJogo.jogador2 as any).id ? selectedJogo.jogador2.nome : null;
+    const resumo = (r: any) => r ? {
+      placar: [r.placar_set1, r.placar_set2, r.placar_set3].filter(Boolean).join(' '),
+      vencedor: nomeDe(r.vencedor_id),
+      is_wo: !!r.is_wo
+    } : null;
+    const confronto = `${selectedJogo.jogador1.nome} vs ${selectedJogo.jogador2.nome}`;
+
     try {
       const formatSet = (j1: number, j2: number, t1: string, t2: string) => {
         let res = `${j1}/${j2}`;
@@ -508,6 +525,14 @@ export function JogosPage() {
           .eq('id', selectedJogo.id);
         
         if (updateStatusError) throw updateStatusError;
+
+        logActivity(
+          user?.id || null,
+          user?.nome || 'Não identificado',
+          'Remoção de Resultado',
+          `Resultado do jogo ${confronto} foi apagado; o jogo voltou para agendado.`,
+          { jogo_id: selectedJogo.id, antes: resumo(resAntes) }
+        );
       } else {
         const resultData = {
           jogo_id: selectedJogo.id,
@@ -515,7 +540,8 @@ export function JogosPage() {
           is_wo: placar.is_wo,
           placar_set1: formatSet(placar.set1_j1, placar.set1_j2, placar.tb1_j1, placar.tb1_j2),
           placar_set2: formatSet(placar.set2_j1, placar.set2_j2, placar.tb2_j1, placar.tb2_j2),
-          placar_set3: placar.set3_j1 || placar.set3_j2 ? formatSet(placar.set3_j1, placar.set3_j2, placar.tb3_j1, placar.tb3_j2) : null
+          placar_set3: placar.set3_j1 || placar.set3_j2 ? formatSet(placar.set3_j1, placar.set3_j2, placar.tb3_j1, placar.tb3_j2) : null,
+          lancado_por: user?.nome || null
         };
 
         if (selectedJogo.status === 'agendado') {
@@ -541,6 +567,7 @@ export function JogosPage() {
               'Registro de Resultado',
               `Resultado registrado para o jogo ${selectedJogo.jogador1.nome} vs ${selectedJogo.jogador2.nome}.`,
               {
+                jogo_id: selectedJogo.id,
                 placar: `${resultData.placar_set1} ${resultData.placar_set2} ${resultData.placar_set3 || ''}`,
                 vencedor: placar.vencedor_id === (selectedJogo.jogador1 as any).id ? selectedJogo.jogador1.nome : selectedJogo.jogador2.nome,
                 is_wo: placar.is_wo
@@ -555,6 +582,14 @@ export function JogosPage() {
             .eq('jogo_id', selectedJogo.id);
 
           if (updateError) throw updateError;
+
+          logActivity(
+            user?.id || null,
+            user?.nome || 'Não identificado',
+            'Alteração de Resultado',
+            `Resultado do jogo ${confronto} foi alterado.`,
+            { jogo_id: selectedJogo.id, antes: resumo(resAntes), depois: resumo(resultData) }
+          );
         }
       }
 
@@ -569,6 +604,7 @@ export function JogosPage() {
       }, 1500);
     } catch (err: any) {
       setError(err.message);
+      logError('Salvar resultado', err, { jogo_id: selectedJogo.id, jogo: confronto, antes: resumo(resAntes), placar_digitado: placar });
     } finally {
       setSubmitting(false);
     }
